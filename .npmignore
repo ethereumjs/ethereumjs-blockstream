@@ -1,0 +1,9 @@
+node_modules/
+.git/
+output/
+tests/
+.vscode/
+.editorconfig
+.gitignore
+Dockerfile
+tsconfig.json
