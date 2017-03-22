@@ -2,10 +2,10 @@
   "name": "ethereumjs-blockstream",
   "version": "1.0.0",
   "description": "A library to turn an unreliably remote source of Ethereum blocks into a reliable stream of blocks with removals on re-orgs and backfills on skips.",
-  "main": "output/index.js",
-  "types": "output/index.d.ts",
+  "main": "output/source/index.js",
+  "types": "output/source/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "copyfiles tests/es5.js output/ && tsc",
     "pretest": "npm run build",
     "test": "mocha output/tests"
   },
@@ -21,9 +21,18 @@
   "homepage": "https://github.com/ethereumjs/ethereumjs-blockstream#readme",
   "devDependencies": {
     "@types/chai": "3.4.35",
+    "@types/chai-as-promised": "0.0.30",
     "@types/mocha": "2.2.40",
     "chai": "3.5.0",
+    "chai-as-promised": "6.0.0",
+    "chai-immutable": "1.6.0",
+    "copyfiles": "^1.2.0",
     "mocha": "3.2.0",
     "typescript": "2.2.1"
+  },
+  "dependencies": {
+    "@types/source-map-support": "0.2.28",
+    "immutable": "3.8.1",
+    "source-map-support": "0.4.14"
   }
 }

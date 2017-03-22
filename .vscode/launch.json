@@ -9,18 +9,9 @@
       "request": "launch",
       "name": "Mocha Tests",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceRoot}/output/tests"
-      ],
+      "args": [ "--timeout", "999999", "--recursive", "--colors", "${workspaceRoot}/output/tests" ],
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceRoot}/output/**/*.js"
-      ],
+      "outFiles": [ "${workspaceRoot}/output/**/*.js" ],
       "internalConsoleOptions": "openOnSessionStart"
     }
   ]

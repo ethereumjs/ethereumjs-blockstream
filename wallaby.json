@@ -1,9 +1,11 @@
 {
   "files": [
-    "source/**/*.ts"
+    "source/**/*.ts",
+    "tests/helpers.ts"
   ],
   "tests": [
-    "tests/**/*.ts"
+    "tests/index.ts",
+    "tests/es5.js"
   ],
   "env": {
     "type": "node"
