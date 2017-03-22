@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
     "module": "commonjs",
     "sourceMap": true,
     "outDir": "output",
@@ -9,10 +9,11 @@
     "noImplicitAny": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "types": [ "node" ]
+    "strictNullChecks": true,
+    "lib": [ "es5", "es2015.promise", "dom" ]
   },
-  "exclude": [
-    "output",
-    "node_modules"
+  "include": [
+    "source/**/*.ts",
+    "tests/**/*.ts"
   ]
 }
