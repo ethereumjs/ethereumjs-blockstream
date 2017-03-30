@@ -4,7 +4,11 @@ output/tests/
 tests/
 .vscode/
 output/.editorconfig
+typings/
+source/
 .editorconfig
 .gitignore
+.travis.yml
 Dockerfile
 tsconfig.json
+wallaby.json
