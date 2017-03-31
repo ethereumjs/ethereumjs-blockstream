@@ -32,7 +32,9 @@
   },
   "dependencies": {
     "@types/source-map-support": "0.2.28",
+    "@types/uuid": "2.0.29",
     "immutable": "3.8.1",
-    "source-map-support": "0.4.14"
+    "source-map-support": "0.4.14",
+    "uuid": "3.0.1"
   }
 }
