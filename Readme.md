@@ -4,7 +4,9 @@ A library to turn an unreliable remote source of Ethereum blocks into a reliable
 
 # Usage
 [Instantiate](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/tests/index.ts#L466): `new BlockAndLogStreamer(getBlockByHashFunction, getLogsFunction, { blockRetention: 5 });`
+
 [Subscribe](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/tests/index.ts#L467-L470): `blockAndLogStreamer.subscribeToOnLogAdded(onLogAddedCallback);`
+
 [Reconcile New Blocks](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/tests/index.ts#L512-L514): `blockAndLogStreamer.reconcileNewBlock(blockFromGetLatest);`
 
 # Build
