@@ -4,13 +4,13 @@ import { List as ImmutableList } from "immutable";
 
 export const reconcileBlockHistory = async (
 	getBlockByHash: (hash: string) => Promise<Block|null>,
-	blockHistory: BlockHistory | null,
+	blockHistory: BlockHistory|Promise<BlockHistory>,
 	newBlock: Block,
 	onBlockAdded: (block: Block) => Promise<void>,
 	onBlockRemoved: (block: Block) => Promise<void>,
 	blockRetention: number = 100,
 ): Promise<BlockHistory> => {
-	if (blockHistory === null) blockHistory = ImmutableList<Block>();
+	blockHistory = await blockHistory;
 	if (isFirstBlock(blockHistory))
 		return await addNewHeadBlock(blockHistory, newBlock, onBlockAdded, blockRetention);
 

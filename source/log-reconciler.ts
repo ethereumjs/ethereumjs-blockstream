@@ -7,13 +7,13 @@ import { List as ImmutableList } from "immutable";
 
 export async function reconcileLogHistoryWithAddedBlock(
 	getLogs: (filterOptions: FilterOptions[]) => Promise<Log[]>,
-	logHistory: LogHistory | null,
+	logHistory: LogHistory | Promise<LogHistory>,
 	newBlock: Block,
 	onLogAdded: (log: Log) => Promise<void>,
 	filters: Filter[] = [],
 	historyBlockLength: number = 100,
 ): Promise<LogHistory> {
-	if (logHistory === null) logHistory = ImmutableList<Log>();
+	logHistory = await logHistory;
 	const logs = await getFilteredLogs(getLogs, newBlock, filters);
 	logHistory = await addNewLogsToHead(logHistory, logs, onLogAdded);
 	logHistory = await pruneOldLogs(logHistory, newBlock, historyBlockLength);
@@ -48,7 +48,7 @@ async function addNewLogToHead(logHistory: LogHistory, newLog: Log, onLogAdded: 
 	return logHistory;
 }
 
-function ensureOrder(headLog: Log|undefined, newLog: Log) {
+function ensureOrder(headLog: Log | undefined, newLog: Log) {
 	if (headLog === undefined) return;
 	const headBlockNumber = parseInt(headLog.blockNumber, 16);
 	const newLogBlockNumber = parseInt(newLog.blockNumber, 16);
@@ -60,11 +60,11 @@ function ensureOrder(headLog: Log|undefined, newLog: Log) {
 }
 
 export async function reconcileLogHistoryWithRemovedBlock(
-	logHistory: LogHistory | null,
+	logHistory: LogHistory|Promise<LogHistory>,
 	removedBlock: Block,
 	onLogRemoved: (log: Log) => Promise<void>,
 ): Promise<LogHistory> {
-	if (logHistory === null) return ImmutableList<Log>();
+	logHistory = await logHistory;
 
 	while (!logHistory.isEmpty() && logHistory.last().blockHash === removedBlock.hash) {
 		await onLogRemoved(logHistory.last());

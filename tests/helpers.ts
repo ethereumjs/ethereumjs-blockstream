@@ -52,7 +52,8 @@ export class MockBlock implements Block {
 	readonly transactions: string[] | Transaction[] = []
 	readonly uncles: string[] = [];
 
-	constructor(number: number, fork: string = "AAAA", parentFork: string = "AAAA") {
+	constructor(number: number, fork: string = "AAAA", parentFork?: string) {
+		if (!parentFork) parentFork = fork;
 		const numberAsHex = number.toString(16);
 		const parentNumberAsHex = (number - 1).toString(16);
 		this.hash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${fork}${`0000${numberAsHex}`.substring(numberAsHex.length)}`;
