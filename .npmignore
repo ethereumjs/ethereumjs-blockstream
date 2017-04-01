@@ -4,8 +4,6 @@ output/tests/
 tests/
 .vscode/
 output/.editorconfig
-typings/
-source/
 .editorconfig
 .gitignore
 .travis.yml
