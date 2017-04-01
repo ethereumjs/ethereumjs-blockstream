@@ -39,6 +39,8 @@ const rollback = async (blockHistory: BlockHistory, onBlockRemoved: (block: Bloc
 }
 
 const backfill = async (getBlockByHash: (hash: string) => Promise<Block|null>, blockHistory: BlockHistory, newBlock: Block, onBlockAdded: (block: Block) => Promise<void>, onBlockRemoved: (block: Block) => Promise<void>, blockRetention: number) => {
+	if (newBlock.parentHash === "0x0000000000000000000000000000000000000000000000000000000000000000")
+		return rollback(blockHistory, onBlockRemoved);
 	const parentBlock = await getBlockByHash(newBlock.parentHash);
 	if (parentBlock === null) throw new Error("Failed to fetch parent block.");
 	if (parseInt(parentBlock.number, 16) + blockRetention < parseInt(blockHistory.last().number, 16))
