@@ -18,15 +18,13 @@ export function getBlockByHashFactory(blocks: Block[] = []) {
 }
 
 export function getLogsFactory(logsPerFilter: number, fork: string = "AAAA") {
-	return async (filterOptions: FilterOptions[]): Promise<Log[]> => {
+	return async (filterOptions: FilterOptions): Promise<Log[]> => {
 		await delay(0);
-		if (filterOptions.length === 0) throw new Error("filter options are required");
+		if (!filterOptions) throw new Error("filter options are required");
 		const logs = [];
 		let logIndex = 0;
 		for (let i = 0; i < logsPerFilter; ++i) {
-			for (const filter of filterOptions) {
-				logs.push(new MockLog(parseInt(filter.toBlock!, 16), logIndex++, fork));
-			}
+			logs.push(new MockLog(parseInt(filterOptions.toBlock!, 16), logIndex++, fork));
 		}
 		return logs;
 	};

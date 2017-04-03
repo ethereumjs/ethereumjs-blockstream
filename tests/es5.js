@@ -7,7 +7,7 @@ var getBlockByHashFactory = require("./helpers").getBlockByHashFactory;
 var getLogsFactory = require("./helpers").getLogsFactory;
 var expect = require("chai").expect;
 
-describe("BlockAndLogStreamer", function () {
+describe("BlockAndLogStreamer Callback Style", function () {
   var blockAndLogStreamer;
   var blockAddedAnnouncements;
   var blockRemovedAnnouncements;
@@ -32,6 +32,7 @@ describe("BlockAndLogStreamer", function () {
         .catch(error => callback(error, undefined));
     };
     blockAndLogStreamer = BlockAndLogStreamer.createCallbackStyle(wrappedGetBlockByHash, wrappedGetLogs, { blockRetention: 5 });
+		blockAndLogStreamer.addLogFilter({});
     blockAndLogStreamer.subscribeToOnBlockAdded(onBlockAdded);
     blockAndLogStreamer.subscribeToOnBlockRemoved(onBlockRemoved);
     blockAndLogStreamer.subscribeToOnLogAdded(onLogAdded);

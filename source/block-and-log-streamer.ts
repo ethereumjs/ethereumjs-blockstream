@@ -17,7 +17,7 @@ export class BlockAndLogStreamer {
 	private readonly blockRetention: number;
 
 	private readonly getBlockByHash: (hash: string) => Promise<Block | null>;
-	private readonly getLogs: (filterOptions: FilterOptions[]) => Promise<Log[]>;
+	private readonly getLogs: (filterOptions: FilterOptions) => Promise<Log[]>;
 
 	private readonly logFilters: { [propName: string]: Filter } = {}
 	private readonly onBlockAddedSubscribers: { [propName: string]: (block: Block) => void } = {};
@@ -27,7 +27,7 @@ export class BlockAndLogStreamer {
 
 	constructor(
 		getBlockByHash: (hash: string) => Promise<Block | null>,
-		getLogs: (filterOptions: FilterOptions[]) => Promise<Log[]>,
+		getLogs: (filterOptions: FilterOptions) => Promise<Log[]>,
 		configuration?: { blockRetention?: number },
 	) {
 		this.getBlockByHash = getBlockByHash;
@@ -37,7 +37,7 @@ export class BlockAndLogStreamer {
 
 	static createCallbackStyle = (
 		getBlockByHash: (hash: string, callback: (error?: Error, block?: Block | null) => void) => void,
-		getLogs: (filterOptions: FilterOptions[], callback: (error?: Error, logs?: Log[]) => void) => void,
+		getLogs: (filterOptions: FilterOptions, callback: (error?: Error, logs?: Log[]) => void) => void,
 		configuration?: { blockRetention?: number },
 	): BlockAndLogStreamer => {
 		const wrappedGetBlockByHash = (hash: string): Promise<Block | null> => new Promise<Block | null>((resolve, reject) => {
@@ -46,7 +46,7 @@ export class BlockAndLogStreamer {
 				else resolve(block);
 			});
 		});
-		const wrappedGetLogs = (filterOptions: FilterOptions[]): Promise<Log[]> => new Promise<Log[]>((resolve, reject) => {
+		const wrappedGetLogs = (filterOptions: FilterOptions): Promise<Log[]> => new Promise<Log[]>((resolve, reject) => {
 			getLogs(filterOptions, (error, logs) => {
 				if (error) throw error;
 				if (!logs) throw new Error("Received null/undefined logs and no error.");
