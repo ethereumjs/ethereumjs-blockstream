@@ -11,4 +11,4 @@ before_script:
 
 script:
   - npm run test
-  - istanbul cover -x **/lib/** ./node_modules/mocha/bin/_mocha output/tests --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage
+  - istanbul cover ./node_modules/mocha/bin/_mocha output/tests --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage

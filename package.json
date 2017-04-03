@@ -26,9 +26,9 @@
     "chai": "3.5.0",
     "chai-as-promised": "6.0.0",
     "chai-immutable": "1.6.0",
-    "copyfiles": "^1.2.0",
-    "coveralls": "^2.13.0",
-    "istanbul": "^0.4.5",
+    "copyfiles": "1.2.0",
+    "coveralls": "2.13.0",
+    "istanbul": "0.4.5",
     "mocha": "3.2.0",
     "typescript": "2.2.1"
   },
