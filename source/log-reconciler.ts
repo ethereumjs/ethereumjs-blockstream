@@ -6,7 +6,7 @@ import { LogHistory } from "./models/log-history";
 import { List as ImmutableList } from "immutable";
 
 export async function reconcileLogHistoryWithAddedBlock(
-	getLogs: (filterOptions: FilterOptions[]) => Promise<Log[]>,
+	getLogs: (filterOptions: FilterOptions) => Promise<Log[]>,
 	logHistory: LogHistory | Promise<LogHistory>,
 	newBlock: Block,
 	onLogAdded: (log: Log) => Promise<void>,
@@ -21,10 +21,12 @@ export async function reconcileLogHistoryWithAddedBlock(
 	// TODO: validate logs are part of expected block hash
 }
 
-async function getFilteredLogs(getLogs: (filterOptions: FilterOptions[]) => Promise<Log[]>, newBlock: Block, filters: Filter[]): Promise<Log[]> {
-	if (filters.length === 0) filters = [{}];
-	const filterOptions = filters.map((filter) => ({ fromBlock: newBlock.number, toBlock: newBlock.number, address: filter.address, topics: filter.topics, }));
-	return await getLogs(filterOptions);
+async function getFilteredLogs(getLogs: (filterOptions: FilterOptions) => Promise<Log[]>, newBlock: Block, filters: Filter[]): Promise<Log[]> {
+	const logPromises = filters
+		.map(filter => ({ fromBlock: newBlock.number, toBlock: newBlock.number, address: filter.address, topics: filter.topics, }))
+		.map(filter => getLogs(filter));
+	return await Promise.all(logPromises)
+		.then(nestedLogs => nestedLogs.reduce((allLogs, logs) => allLogs.concat(logs), []));
 }
 
 async function addNewLogsToHead(logHistory: LogHistory, newLogs: Log[], onLogAdded: (log: Log) => Promise<void>): Promise<LogHistory> {
