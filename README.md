@@ -15,7 +15,7 @@ function getBlockByHash(hash: string): Promise<Block|null> {
         body: { jsonrpc: "2.0", id: 1, method: "eth_getBlockByHash", params: [hash, false] }
     }).then(response => response.json());
 }
-//function getBlockByHashCallbackStyle(hash: string, callback: (block: Block|null) => void): void {
+//function getBlockByHashCallbackStyle(hash: string, callback: (error: Error, block?: Block) => void): void {
 //    fetch("http://localhost:8545", {
 //        method: "POST",
 //        headers: new Headers({"Content-Type": "application/json"}),
@@ -32,7 +32,7 @@ function getLogs(filterOptions: FilterOptions): Promise<Log[]> {
         body: { jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [filterOptions] }
     }).then(response => response.json());
 }
-//function getLogsCallbackStyle(filterOptions: FilterOptions): Promise<Log[]> {
+//function getLogsCallbackStyle(filterOptions: FilterOptions, callback: (error: Error, logs?: Log[]) => void): void {
 //    return fetch("http://localhost:8545", {
 //        method: "POST",
 //        headers: new Headers({"Content-Type": "application/json"}),
