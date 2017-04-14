@@ -1,5 +1,5 @@
-// import * as sourceMapSupport from "source-map-support";
-// sourceMapSupport.install();
+import * as sourceMapSupport from "source-map-support";
+sourceMapSupport.install();
 
 export { Block } from "./models/block";
 export { Log } from "./models/log";
