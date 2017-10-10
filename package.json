@@ -1,6 +1,6 @@
 {
   "name": "ethereumjs-blockstream",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "A library to turn an unreliable remote source of Ethereum blocks into a reliable stream of blocks with removals on re-orgs and backfills on skips.",
   "main": "output/source/index.js",
   "types": "output/source/index.d.ts",
