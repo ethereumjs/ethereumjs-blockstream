@@ -1,5 +1,6 @@
-import * as sourceMapSupport from "source-map-support";
-sourceMapSupport.install();
+// NOTE -- Commented out to avoid cross origin error when run via webpack
+// import * as sourceMapSupport from "source-map-support";
+// sourceMapSupport.install();
 
 export { Block } from "./models/block";
 export { Log } from "./models/log";
