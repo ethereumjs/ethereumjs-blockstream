@@ -1,4 +1,4 @@
 import { Log } from "./log";
 import { List as ImmutableList } from "immutable";
 
-export type LogHistory = ImmutableList<Log>;
+export type LogHistory<TLog extends Log> = ImmutableList<TLog>;

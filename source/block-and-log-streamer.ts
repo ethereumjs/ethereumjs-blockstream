@@ -9,25 +9,25 @@ import { reconcileLogHistoryWithAddedBlock, reconcileLogHistoryWithRemovedBlock 
 import { List as ImmutableList } from "immutable";
 import * as createUuid from "uuid";
 
-export class BlockAndLogStreamer {
-	private blockHistory: Promise<BlockHistory> = Promise.resolve(ImmutableList<Block>());
-	private logHistory: Promise<LogHistory> = Promise.resolve(ImmutableList<Log>());
-	private latestBlock: Block | null = null;
+export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
+	private blockHistory: Promise<BlockHistory<TBlock>> = Promise.resolve(ImmutableList<TBlock>());
+	private logHistory: Promise<LogHistory<TLog>> = Promise.resolve(ImmutableList<TLog>());
+	private latestBlock: TBlock | null = null;
 
 	private readonly blockRetention: number;
 
-	private readonly getBlockByHash: (hash: string) => Promise<Block | null>;
-	private readonly getLogs: (filterOptions: FilterOptions) => Promise<Log[]>;
+	private readonly getBlockByHash: (hash: string) => Promise<TBlock | null>;
+	private readonly getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>;
 
 	private readonly logFilters: { [propName: string]: Filter } = {}
-	private readonly onBlockAddedSubscribers: { [propName: string]: (block: Block) => void } = {};
-	private readonly onBlockRemovedSubscribers: { [propName: string]: (block: Block) => void } = {};
-	private readonly onLogAddedSubscribers: { [propName: string]: (log: Log) => void } = {};
-	private readonly onLogRemovedSubscribers: { [propName: string]: (log: Log) => void } = {};
+	private readonly onBlockAddedSubscribers: { [propName: string]: (block: TBlock) => void } = {};
+	private readonly onBlockRemovedSubscribers: { [propName: string]: (block: TBlock) => void } = {};
+	private readonly onLogAddedSubscribers: { [propName: string]: (log: TLog) => void } = {};
+	private readonly onLogRemovedSubscribers: { [propName: string]: (log: TLog) => void } = {};
 
 	constructor(
-		getBlockByHash: (hash: string) => Promise<Block | null>,
-		getLogs: (filterOptions: FilterOptions) => Promise<Log[]>,
+		getBlockByHash: (hash: string) => Promise<TBlock | null>,
+		getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>,
 		configuration?: { blockRetention?: number },
 	) {
 		this.getBlockByHash = getBlockByHash;
@@ -35,40 +35,42 @@ export class BlockAndLogStreamer {
 		this.blockRetention = (configuration && configuration.blockRetention) ? configuration.blockRetention : 100;
 	}
 
-	static createCallbackStyle = (
-		getBlockByHash: (hash: string, callback: (error?: Error, block?: Block | null) => void) => void,
-		getLogs: (filterOptions: FilterOptions, callback: (error?: Error, logs?: Log[]) => void) => void,
+	static createCallbackStyle = <TBlock extends Block, TLog extends Log>(
+		getBlockByHash: (hash: string, callback: (error?: Error, block?: TBlock | null) => void) => void,
+		getLogs: (filterOptions: FilterOptions, callback: (error?: Error, logs?: TLog[]) => void) => void,
 		configuration?: { blockRetention?: number },
-	): BlockAndLogStreamer => {
-		const wrappedGetBlockByHash = (hash: string): Promise<Block | null> => new Promise<Block | null>((resolve, reject) => {
-			getBlockByHash(hash, (error, block) => {
-				if (error) throw error;
-				else resolve(block);
+	): BlockAndLogStreamer<TBlock, TLog> => {
+		const wrappedGetBlockByHash = (hash: string): Promise<TBlock | null> => {
+			return new Promise<TBlock | null>((resolve, reject) => {
+				getBlockByHash(hash, (error, block) => {
+					if (error) throw error;
+					else resolve(block);
+				});
 			});
-		});
-		const wrappedGetLogs = (filterOptions: FilterOptions): Promise<Log[]> => new Promise<Log[]>((resolve, reject) => {
+		};
+		const wrappedGetLogs = (filterOptions: FilterOptions): Promise<Array<TLog>> => new Promise<Array<TLog>>((resolve, reject) => {
 			getLogs(filterOptions, (error, logs) => {
 				if (error) throw error;
 				if (!logs) throw new Error("Received null/undefined logs and no error.");
 				resolve(logs);
 			});
 		});
-		return new BlockAndLogStreamer(wrappedGetBlockByHash, wrappedGetLogs, configuration);
+		return new BlockAndLogStreamer<TBlock, TLog>(wrappedGetBlockByHash, wrappedGetLogs, configuration);
 	}
 
-	public readonly reconcileNewBlock = async (block: Block): Promise<void> => {
+	public readonly reconcileNewBlock = async (block: TBlock): Promise<void> => {
 		this.blockHistory = reconcileBlockHistory(this.getBlockByHash, this.blockHistory, block, this.onBlockAdded, this.onBlockRemoved, this.blockRetention);
 		const blockHistory = await this.blockHistory;
 		this.latestBlock = blockHistory.last();
 	};
 
-	public readonly reconcileNewBlockCallbackStyle = async (block: Block, callback: (error?: Error) => void): Promise<void> => {
+	public readonly reconcileNewBlockCallbackStyle = async (block: TBlock, callback: (error?: Error) => void): Promise<void> => {
 		this.reconcileNewBlock(block)
 			.then(() => callback(undefined))
 			.catch(error => callback(error));
 	};
 
-	private readonly onBlockAdded = async (block: Block): Promise<void> => {
+	private readonly onBlockAdded = async (block: TBlock): Promise<void> => {
 		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key]);
 		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention);
 
@@ -79,7 +81,7 @@ export class BlockAndLogStreamer {
 			.forEach(callback => callback(block));
 	};
 
-	private readonly onBlockRemoved = async (block: Block): Promise<void> => {
+	private readonly onBlockRemoved = async (block: TBlock): Promise<void> => {
 		this.logHistory = reconcileLogHistoryWithRemovedBlock(this.logHistory, block, this.onLogRemoved);
 
 		await this.logHistory;
@@ -89,14 +91,14 @@ export class BlockAndLogStreamer {
 			.forEach(callback => callback(block));
 	};
 
-	private readonly onLogAdded = async (log: Log): Promise<void> => {
+	private readonly onLogAdded = async (log: TLog): Promise<void> => {
 		Object.keys(this.onLogAddedSubscribers)
 			.map((key: string) => this.onLogAddedSubscribers[key])
 			.map(callback => logAndSwallowWrapper(callback))
 			.forEach(callback => callback(log));
 	};
 
-	private readonly onLogRemoved = async (log: Log): Promise<void> => {
+	private readonly onLogRemoved = async (log: TLog): Promise<void> => {
 		Object.keys(this.onLogRemovedSubscribers)
 			.map((key: string) => this.onLogRemovedSubscribers[key])
 			.map(callback => logAndSwallowWrapper(callback))
@@ -104,7 +106,7 @@ export class BlockAndLogStreamer {
 	};
 
 
-	public readonly getLatestReconciledBlock = (): Block | null => {
+	public readonly getLatestReconciledBlock = (): TBlock | null => {
 		return this.latestBlock;
 	};
 
@@ -121,7 +123,7 @@ export class BlockAndLogStreamer {
 	};
 
 
-	public readonly subscribeToOnBlockAdded = (onBlockAdded: (block: Block) => void): string => {
+	public readonly subscribeToOnBlockAdded = (onBlockAdded: (block: TBlock) => void): string => {
 		const uuid = `on block added token ${createUuid()}`;
 		this.onBlockAddedSubscribers[uuid] = onBlockAdded;
 		return uuid;
@@ -133,7 +135,7 @@ export class BlockAndLogStreamer {
 	};
 
 
-	public readonly subscribeToOnBlockRemoved = (onBlockRemoved: (block: Block) => void): string => {
+	public readonly subscribeToOnBlockRemoved = (onBlockRemoved: (block: TBlock) => void): string => {
 		const uuid = `on block removed token ${createUuid()}`;
 		this.onBlockRemovedSubscribers[uuid] = onBlockRemoved;
 		return uuid;
@@ -145,7 +147,7 @@ export class BlockAndLogStreamer {
 	};
 
 
-	public readonly subscribeToOnLogAdded = (onLogAdded: (log: Log) => void): string => {
+	public readonly subscribeToOnLogAdded = (onLogAdded: (log: TLog) => void): string => {
 		const uuid = `on log added token ${createUuid()}`;
 		this.onLogAddedSubscribers[uuid] = onLogAdded;
 		return uuid;
@@ -157,7 +159,7 @@ export class BlockAndLogStreamer {
 	};
 
 
-	public readonly subscribeToOnLogRemoved = (onLogRemoved: (log: Log) => void): string => {
+	public readonly subscribeToOnLogRemoved = (onLogRemoved: (log: TLog) => void): string => {
 		const uuid = `on log removed token ${createUuid()}`;
 		this.onLogRemovedSubscribers[uuid] = onLogRemoved;
 		return uuid;

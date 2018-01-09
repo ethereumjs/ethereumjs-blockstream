@@ -35,7 +35,7 @@
     "typescript": "2.2.2"
   },
   "dependencies": {
-    "immutable": "3.8.1",
+    "immutable": "3.8.2",
     "source-map-support": "0.4.14",
     "uuid": "3.0.1"
   }
