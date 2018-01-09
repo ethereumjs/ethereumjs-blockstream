@@ -3,8 +3,7 @@ sudo: false
 language: node_js
 
 node_js:
-  - "7"
-  - "6"
+  - "8"
 
 before_script:
   - npm install

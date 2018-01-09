@@ -465,7 +465,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 });
 
 describe("BlockAndLogStreamer", async () => {
-	let blockAndLogStreamer: BlockAndLogStreamer;
+	let blockAndLogStreamer: BlockAndLogStreamer<Block, Log>;
 	let blockAddedAnnouncements: Block[];
 	let blockRemovedAnnouncements: Block[];
 	let logAddedAnnouncements: Log[];

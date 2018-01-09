@@ -5,14 +5,14 @@ import { Filter, FilterOptions } from "./models/filters";
 import { LogHistory } from "./models/log-history";
 import { List as ImmutableList } from "immutable";
 
-export async function reconcileLogHistoryWithAddedBlock(
-	getLogs: (filterOptions: FilterOptions) => Promise<Log[]>,
-	logHistory: LogHistory | Promise<LogHistory>,
-	newBlock: Block,
-	onLogAdded: (log: Log) => Promise<void>,
+export const reconcileLogHistoryWithAddedBlock = async <TBlock extends Block, TLog extends Log>(
+	getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>,
+	logHistory: LogHistory<TLog> | Promise<LogHistory<TLog>>,
+	newBlock: TBlock,
+	onLogAdded: (log: TLog) => Promise<void>,
 	filters: Filter[] = [],
 	historyBlockLength: number = 100,
-): Promise<LogHistory> {
+): Promise<LogHistory<TLog>> => {
 	logHistory = await logHistory;
 	const logs = await getFilteredLogs(getLogs, newBlock, filters);
 	logHistory = await addNewLogsToHead(logHistory, logs, onLogAdded);
@@ -21,7 +21,7 @@ export async function reconcileLogHistoryWithAddedBlock(
 	// TODO: validate logs are part of expected block hash
 }
 
-async function getFilteredLogs(getLogs: (filterOptions: FilterOptions) => Promise<Log[]>, newBlock: Block, filters: Filter[]): Promise<Log[]> {
+const getFilteredLogs = async <TBlock extends Block, TLog extends Log>(getLogs: (filterOptions: FilterOptions) => Promise<Array<TLog>>, newBlock: TBlock, filters: Array<Filter>): Promise<Array<TLog>> => {
 	const logPromises = filters
 		.map(filter => ({ fromBlock: newBlock.number, toBlock: newBlock.number, address: filter.address, topics: filter.topics, }))
 		.map(filter => getLogs(filter));
@@ -29,7 +29,7 @@ async function getFilteredLogs(getLogs: (filterOptions: FilterOptions) => Promis
 		.then(nestedLogs => nestedLogs.reduce((allLogs, logs) => allLogs.concat(logs), []));
 }
 
-async function addNewLogsToHead(logHistory: LogHistory, newLogs: Log[], onLogAdded: (log: Log) => Promise<void>): Promise<LogHistory> {
+const addNewLogsToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, newLogs: Array<TLog>, onLogAdded: (log: TLog) => Promise<void>): Promise<LogHistory<TLog>> => {
 	const sortedLogs = newLogs.sort((logA, logB) => parseInt(logA.logIndex, 16) - parseInt(logB.logIndex, 16));
 	for (const log of sortedLogs) {
 		ensureOrder(logHistory.last(), log);
@@ -38,19 +38,19 @@ async function addNewLogsToHead(logHistory: LogHistory, newLogs: Log[], onLogAdd
 	return logHistory;
 }
 
-async function pruneOldLogs(logHistory: LogHistory, newBlock: Block, historyBlockLength: number): Promise<LogHistory> {
-	// `logBlock!` is required until the next version of `immutable` is published to NPM (current version 3.8.1) which improves the type definitions
-	return logHistory.skipUntil(log => parseInt(newBlock!.number, 16) - parseInt(log!.blockNumber, 16) < historyBlockLength).toList();
+const pruneOldLogs = async <TBlock extends Block, TLog extends Log>(logHistory: LogHistory<TLog>, newBlock: TBlock, historyBlockLength: number): Promise<LogHistory<TLog>> => {
+	// `log!` is required until the next major version of `immutable` is published to NPM (current version 3.8.2) which improves the type definitions
+	return logHistory.skipUntil(log => parseInt(newBlock.number, 16) - parseInt(log!.blockNumber, 16) < historyBlockLength).toList();
 }
 
-async function addNewLogToHead(logHistory: LogHistory, newLog: Log, onLogAdded: (log: Log) => Promise<void>): Promise<LogHistory> {
+const addNewLogToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, newLog: TLog, onLogAdded: (log: TLog) => Promise<void>): Promise<LogHistory<TLog>> => {
 	logHistory = logHistory.push(newLog);
 	// CONSIDER: the user getting this notification won't have any visibility into the updated log history yet. should we announce new logs in a `setTimeout`? should we provide log history with new logs?
 	await onLogAdded(newLog);
 	return logHistory;
 }
 
-function ensureOrder(headLog: Log | undefined, newLog: Log) {
+const ensureOrder = <TLog extends Log>(headLog: TLog | undefined, newLog: TLog) => {
 	if (headLog === undefined) return;
 	const headBlockNumber = parseInt(headLog.blockNumber, 16);
 	const newLogBlockNumber = parseInt(newLog.blockNumber, 16);
@@ -61,11 +61,11 @@ function ensureOrder(headLog: Log | undefined, newLog: Log) {
 	if (headLogIndex >= newLogIndex) throw new Error("received log with same block number but index newer than previous index");
 }
 
-export async function reconcileLogHistoryWithRemovedBlock(
-	logHistory: LogHistory|Promise<LogHistory>,
-	removedBlock: Block,
-	onLogRemoved: (log: Log) => Promise<void>,
-): Promise<LogHistory> {
+export const reconcileLogHistoryWithRemovedBlock = async <TBlock extends Block, TLog extends Log>(
+	logHistory: LogHistory<TLog>|Promise<LogHistory<TLog>>,
+	removedBlock: TBlock,
+	onLogRemoved: (log: TLog) => Promise<void>,
+): Promise<LogHistory<TLog>> => {
 	logHistory = await logHistory;
 
 	while (!logHistory.isEmpty() && logHistory.last().blockHash === removedBlock.hash) {
