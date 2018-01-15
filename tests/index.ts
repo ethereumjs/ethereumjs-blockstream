@@ -158,7 +158,7 @@ describe("reconcileBlockHistory", () => {
 		]);
 	});
 
-	it("throws an exception if backfilling too far", async () => {
+	it("resets history if reconciliation not possible", async () => {
 		const oldHistory = Promise.resolve(ImmutableList<Block>([
 			new MockBlock(0x7777),
 			new MockBlock(0x7778)
@@ -168,15 +168,11 @@ describe("reconcileBlockHistory", () => {
 		const newHistory = await reconcileBlockHistory(getBlockByHashFactory(), oldHistory, newBlock, onBlockAdded, onBlockRemoved, 5);
 
 		expect(newHistory.toJS()).to.deep.equal([
-			new MockBlock(0x7774, "BBBB", "BBBB"),
-			new MockBlock(0x7775, "BBBB", "BBBB"),
 			new MockBlock(0x7776, "BBBB", "BBBB"),
 			new MockBlock(0x7777, "BBBB", "BBBB"),
 			new MockBlock(0x7778, "BBBB", "BBBB"),
 		]);
 		expect(newBlockAnnouncements).to.deep.equal([
-			new MockBlock(0x7774, "BBBB", "BBBB"),
-			new MockBlock(0x7775, "BBBB", "BBBB"),
 			new MockBlock(0x7776, "BBBB", "BBBB"),
 			new MockBlock(0x7777, "BBBB", "BBBB"),
 			new MockBlock(0x7778, "BBBB", "BBBB"),
@@ -198,6 +194,31 @@ describe("reconcileBlockHistory", () => {
 		expect(newBlockAnnouncements).to.be.empty;
 		expect(blockRemovalAnnouncments).to.be.empty;
 	});
+
+	it("wipes out history if new block is older than oldest block in history", async () => {
+		const oldHistory = Promise.resolve(ImmutableList<Block>([
+			new MockBlock(0x7777),
+			new MockBlock(0x7778),
+			new MockBlock(0x7779),
+			new MockBlock(0x777A),
+		]));
+		const newBlock = new MockBlock(0x7776);
+
+		const newHistory = await reconcileBlockHistory(getBlockByHashFactory(), oldHistory, newBlock, onBlockAdded, onBlockRemoved);
+
+		expect(newHistory.toJS()).to.deep.equal([
+			new MockBlock(0x7776),
+		]);
+		expect(newBlockAnnouncements).to.deep.equal([
+			new MockBlock(0x7776),
+		]);
+		expect(blockRemovalAnnouncments).to.deep.equal([
+			new MockBlock(0x777A),
+			new MockBlock(0x7779),
+			new MockBlock(0x7778),
+			new MockBlock(0x7777),
+		])
+	})
 });
 
 describe("reconcileLogHistoryWithAddedBlock", async () => {
