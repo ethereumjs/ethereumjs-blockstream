@@ -16,6 +16,11 @@ export const reconcileBlockHistory = async <TBlock extends Block>(
 	if (isFirstBlock(blockHistory))
 		return await addNewHeadBlock(blockHistory, newBlock, onBlockAdded, blockRetention);
 
+	if (isOlderThanOldestBlock(blockHistory, newBlock)) {
+		blockHistory = await rollback(blockHistory, onBlockRemoved);
+		return await addNewHeadBlock(blockHistory, newBlock, onBlockAdded, blockRetention);
+	}
+
 	if (isAlreadyInHistory(blockHistory, newBlock))
 		return blockHistory;
 
@@ -67,8 +72,12 @@ const removeHeadBlock = async <TBlock extends Block>(blockHistory: BlockHistory<
 	return blockHistory;
 }
 
-const isFirstBlock = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>, ): boolean => {
+const isFirstBlock = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>): boolean => {
 	return blockHistory.isEmpty();
+}
+
+const isOlderThanOldestBlock = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>, newBlock: TBlock): boolean => {
+	return parseInt(blockHistory.first().number, 16) > parseInt(newBlock.number, 16);
 }
 
 const isAlreadyInHistory = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>, newBlock: TBlock): boolean => {
