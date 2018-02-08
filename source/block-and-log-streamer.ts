@@ -69,14 +69,14 @@ export class BlockAndLogStreamer {
 	};
 
 	private readonly onBlockAdded = async (block: Block): Promise<void> => {
-		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key]);
-		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention);
-
-		await this.logHistory;
 		Object.keys(this.onBlockAddedSubscribers)
 			.map((key: string) => this.onBlockAddedSubscribers[key])
 			.map(callback => logAndSwallowWrapper(callback))
 			.forEach(callback => callback(block));
+
+		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key]);
+		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention);
+		await this.logHistory;
 	};
 
 	private readonly onBlockRemoved = async (block: Block): Promise<void> => {
