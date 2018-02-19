@@ -8,49 +8,31 @@ A library to turn an unreliable remote source of Ethereum blocks into a reliable
 ```typescript
 // blockRetention is how many blocks of history to keep in memory.  it defaults to 100 if not supplied
 const configuration = { blockRetention: 100 };
-function getBlockByHash(hash: string): Promise<Block|null> {
-    return fetch("http://localhost:8545", {
+async function getBlockByHash(hash: string): Promise<Block|null> {
+    const response = await fetch("http://localhost:8545", {
         method: "POST",
         headers: new Headers({"Content-Type": "application/json"}),
         body: { jsonrpc: "2.0", id: 1, method: "eth_getBlockByHash", params: [hash, false] }
-    }).then(response => response.json());
+    });
+    return await response.json();
 }
-//function getBlockByHashCallbackStyle(hash: string, callback: (error?: Error, block?: Block|null) => void): void {
-//    fetch("http://localhost:8545", {
-//        method: "POST",
-//        headers: new Headers({"Content-Type": "application/json"}),
-//        body: { jsonrpc: "2.0", id: 1, method: "eth_getBlockByHash", params: [hash, false] }
-//    })
-//    .then(response => response.json())
-//    .then(block => callback(undefined, block))
-//    .catch(error => callback(error, undefined));
-//}
-function getLogs(filterOptions: FilterOptions): Promise<Log[]> {
-    return fetch("http://localhost:8545", {
+async function getLogs(filterOptions: FilterOptions): Promise<Log[]> {
+    const response = await fetch("http://localhost:8545", {
         method: "POST",
         headers: new Headers({"Content-Type": "application/json"}),
         body: { jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [filterOptions] }
-    }).then(response => response.json());
+    });
+    return await response.json();
 }
-//function getLogsCallbackStyle(filterOptions: FilterOptions, callback: (error?: Error, logs?: Log[]) => void): void {
-//    return fetch("http://localhost:8545", {
-//        method: "POST",
-//        headers: new Headers({"Content-Type": "application/json"}),
-//        body: { jsonrpc: "2.0", id: 1, method: "eth_getLogs", params: [filterOptions] }
-//    })
-//    .then(response => response.json())
-//    .then(logs => callback(undefined, logs)
-//    .catch(error => callback(error, undefined));
-//}
-function getLatestBlock(): Promise<Block> {
-    return fetch("http://localhost:8545", {
+async function getLatestBlock(): Promise<Block> {
+    const response = await fetch("http://localhost:8545", {
         method: "POST",
         headers: new Headers({"Content-Type": "application/json"}),
         body: { jsonrpc: "2.0", id: 1, method: "eth_getBlockByNumber", params: ["latest", false] }
-    }).then(response => response.json());
+    });
+    return await response.json();
 }
 const blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHash, getLogs, configuration);
-// const blockAndLogStreamer = BlockAndLogStreamer.createCallbackStyle(getBlockByHashCallbackStyle, getLogsCallbackStyle, configuration);
 const onBlockAddedSubscriptionToken = blockAndLogStreamer.subscribeToOnBlockAdded(block => console.log(block));
 const onLogAddedSubscriptionToken = blockAndLogStreamer.subscribeToOnLogAdded(log => console.log(log));
 const onBlockRemovedSubscriptionToken = blockAndLogStreamer.subscribeToOnBlockRemoved(block => console.log(block));

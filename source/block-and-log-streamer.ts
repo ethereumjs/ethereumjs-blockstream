@@ -40,6 +40,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 		getLogs: (filterOptions: FilterOptions, callback: (error?: Error, logs?: TLog[]) => void) => void,
 		configuration?: { blockRetention?: number },
 	): BlockAndLogStreamer<TBlock, TLog> => {
+		console.warn(`Deprecation Warning: The callback interface for ethereumjs-blockstream is deprecated and will be removed in a future version of this library.  Use BlockAndLogStreamer constructor instead.`);
 		const wrappedGetBlockByHash = (hash: string): Promise<TBlock | null> => {
 			return new Promise<TBlock | null>((resolve, reject) => {
 				getBlockByHash(hash, (error, block) => {
@@ -65,6 +66,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 	public readonly reconcileNewBlockCallbackStyle = async (block: TBlock, callback: (error?: Error) => void): Promise<void> => {
+		console.warn(`Deprecation Warning: The callback interface for ethereumjs-blockstream is deprecated and will be removed in a future version of this library.  Use BlockAndLogStreamer.reconcileNewBlock instead.`);
 		this.reconcileNewBlock(block)
 			.then(() => callback(undefined))
 			.catch(error => callback(error));
