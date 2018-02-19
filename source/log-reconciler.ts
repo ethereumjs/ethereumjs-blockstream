@@ -25,15 +25,17 @@ const getFilteredLogs = async <TBlock extends Block, TLog extends Log>(getLogs: 
 	const logPromises = filters
 		.map(filter => ({ fromBlock: newBlock.number, toBlock: newBlock.number, address: filter.address, topics: filter.topics, }))
 		.map(filter => getLogs(filter));
-	return await Promise.all(logPromises)
-		.then(nestedLogs => nestedLogs.reduce((allLogs, logs) => allLogs.concat(logs), []));
+	const nestedLogs = await Promise.all(logPromises);
+	return nestedLogs.reduce((allLogs, logs) => allLogs.concat(logs), []);
 }
 
 const addNewLogsToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, newLogs: Array<TLog>, onLogAdded: (log: TLog) => Promise<void>): Promise<LogHistory<TLog>> => {
 	const sortedLogs = newLogs.sort((logA, logB) => parseInt(logA.logIndex, 16) - parseInt(logB.logIndex, 16));
-	for (const log of sortedLogs) {
-		ensureOrder(logHistory.last(), log);
-		logHistory = await addNewLogToHead(logHistory, log, onLogAdded);
+	for (const logToAdd of sortedLogs) {
+		// we may already have this log because two filters can return the same log
+		if (logHistory.some(logInHistory => logInHistory!.blockHash === logToAdd.blockHash && logInHistory!.logIndex === logToAdd.logIndex)) continue;
+		ensureOrder(logHistory.last(), logToAdd);
+		logHistory = await addNewLogToHead(logHistory, logToAdd, onLogAdded);
 	}
 	return logHistory;
 }
@@ -54,11 +56,11 @@ const ensureOrder = <TLog extends Log>(headLog: TLog | undefined, newLog: TLog) 
 	if (headLog === undefined) return;
 	const headBlockNumber = parseInt(headLog.blockNumber, 16);
 	const newLogBlockNumber = parseInt(newLog.blockNumber, 16);
-	if (headBlockNumber > newLogBlockNumber) throw new Error("received log for a block older than current head log's block");
+	if (headBlockNumber > newLogBlockNumber) throw new Error(`received log for a block (${newLogBlockNumber}) older than current head log's block (${headBlockNumber})`);
 	if (headBlockNumber !== newLogBlockNumber) return;
 	const headLogIndex = parseInt(headLog.logIndex, 16);
 	const newLogIndex = parseInt(newLog.logIndex, 16);
-	if (headLogIndex >= newLogIndex) throw new Error("received log with same block number but index newer than previous index");
+	if (headLogIndex >= newLogIndex) throw new Error(`received log with same block number (${newLogBlockNumber}) but index (${newLogIndex}) is the same or older than previous index (${headLogIndex})`);
 }
 
 export const reconcileLogHistoryWithRemovedBlock = async <TBlock extends Block, TLog extends Log>(

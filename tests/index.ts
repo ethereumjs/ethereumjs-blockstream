@@ -340,24 +340,21 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const firstLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, firstBlock, onLogAdded, [{}]);
 		const secondLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, firstLogHistory, secondBlock, onLogAdded, [{}]);
 
-		await expect(secondLogHistoryPromise).to.eventually.rejectedWith(Error, "received log for a block older than current head log's block");
+		await expect(secondLogHistoryPromise).to.eventually.rejectedWith(Error, /received log for a block (.*?) older than current head log's block (.*?)/);
 		// unfortunate reality
 		expect(newLogAnnouncements).to.deep.equal([new MockLog(0x7777)]);
 	})
 
-	it("fails if multiple logs are received with the same index", async () => {
+	it("dedupes logs with same blockhash and index from multiple filters", async () => {
 		const getLogs = async (filterOptions: FilterOptions) => Promise.resolve([
 			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
 			new MockLog(0x7777, 0x1),
 		]);
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{},{}]);
 
-		await expect(newLogHistoryPromise).to.eventually.rejectedWith(Error, "received log with same block number but index newer than previous index");
-		// unfortunate reality
 		expect(newLogAnnouncements).to.deep.equal([
 			new MockLog(0x7777, 0x0),
 			new MockLog(0x7777, 0x1),
