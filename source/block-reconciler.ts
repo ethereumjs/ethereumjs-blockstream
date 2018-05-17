@@ -45,13 +45,13 @@ const rollback = async <TBlock extends Block>(blockHistory: BlockHistory<TBlock>
 	return blockHistory;
 }
 
-const backfill = async <TBlock extends Block>(getBlockByHash: GetBlockByHash<TBlock>, blockHistory: BlockHistory<TBlock>, newBlock: TBlock, onBlockAdded: (block: TBlock) => Promise<void>, onBlockRemoved: (block: TBlock) => Promise<void>, blockRetention: number) => {
+const backfill = async <TBlock extends Block>(getBlockByHash: GetBlockByHash<TBlock>, blockHistory: BlockHistory<TBlock>, newBlock: TBlock, onBlockAdded: (block: TBlock) => Promise<void>, onBlockRemoved: (block: TBlock) => Promise<void>, blockRetention: number): Promise<BlockHistory<TBlock>> => {
 	if (newBlock.parentHash === "0x0000000000000000000000000000000000000000000000000000000000000000")
-		return rollback(blockHistory, onBlockRemoved);
+		return await rollback(blockHistory, onBlockRemoved);
 	const parentBlock = await getBlockByHash(newBlock.parentHash);
 	if (parentBlock === null) throw new Error("Failed to fetch parent block.");
 	if (parseInt(parentBlock.number, 16) + blockRetention < parseInt(blockHistory.last().number, 16))
-		return rollback(blockHistory, onBlockRemoved);
+		return await rollback(blockHistory, onBlockRemoved);
 	blockHistory = await reconcileBlockHistory(getBlockByHash, blockHistory, parentBlock, onBlockAdded, onBlockRemoved, blockRetention);
 	return await reconcileBlockHistory(getBlockByHash, blockHistory, newBlock, onBlockAdded, onBlockRemoved, blockRetention);
 }
