@@ -484,51 +484,53 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 
 describe("BlockAndLogStreamer", async () => {
 	let blockAndLogStreamer: BlockAndLogStreamer<Block, Log>;
-	let blockAddedAnnouncements: Block[];
-	let blockRemovedAnnouncements: Block[];
-	let logAddedAnnouncements: Log[];
-	let logRemovedAnnouncements: Log[];
-	const onBlockAdded = (block: Block) => blockAddedAnnouncements.push(block);
-	const onBlockRemoved = (block: Block) => blockRemovedAnnouncements.push(block);
-	const onLogAdded = (log: Log) => logAddedAnnouncements.push(log);
-	const onLogRemoved = (log: Log) => logRemovedAnnouncements.push(log);
+	let announcements: {addition: boolean, item: Block|Log|Error}[];
+	const onBlockAdded = (block: Block) => announcements.push({addition: true, item: block});
+	const onBlockRemoved = (block: Block) => announcements.push({addition: false, item: block});
+	const onLogAdded = (log: Log) => announcements.push({addition: true, item: log});
+	const onLogRemoved = (log: Log) => announcements.push({addition: false, item: log});
+	const onError = (error: any) => announcements.push({addition: true, item: error});
 
-	beforeEach(() => {
-		blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHashFactory(), getLogsFactory(1), { blockRetention: 5 });
+	const reinitialize = (getBlockByHash: (hash: string) => Promise<Block|null>, getLogs: (filterOptions: FilterOptions) => Promise<Log[]>) => {
+		blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHash, getLogs, onError, { blockRetention: 5 });
 		blockAndLogStreamer.addLogFilter({});
 		blockAndLogStreamer.subscribeToOnBlockAdded(onBlockAdded);
 		blockAndLogStreamer.subscribeToOnBlockRemoved(onBlockRemoved);
 		blockAndLogStreamer.subscribeToOnLogAdded(onLogAdded);
 		blockAndLogStreamer.subscribeToOnLogRemoved(onLogRemoved);
-		blockAddedAnnouncements = [];
-		blockRemovedAnnouncements = [];
-		logAddedAnnouncements = [];
-		logRemovedAnnouncements = [];
+		announcements = [];
+	}
+
+	beforeEach(() => {
+		reinitialize(getBlockByHashFactory(), getLogsFactory(1));
 	});
 
 	it("announces new blocks and logs", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
 
-		expect(blockAddedAnnouncements).to.deep.equal([new MockBlock(0x7777)]);
-		expect(blockRemovedAnnouncements).to.deep.equal([]);
-		expect(logAddedAnnouncements).to.deep.equal([new MockLog(0x7777, 0)]);
-		expect(logRemovedAnnouncements).to.deep.equal([]);
+		expect(announcements).to.deep.equal([
+			{addition: true, item: new MockBlock(0x7777)},
+			{addition: true, item: new MockLog(0x7777, 0)},
+		]);
 	});
 
 	it("announces removed blocks and logs", async () => {
+		const logs = [ new MockLog(0x7777, 0, 'AAAA'), new MockLog(0x7778, 0, 'AAAA'), new MockLog(0x7778, 0, 'BBBB') ];
+		const getLogs = async (filterOptions: FilterOptions) => [logs.shift()!];
+		reinitialize(getBlockByHashFactory(), getLogs);
+
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777, "AAAA"));
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778, "AAAA"));
-		blockAddedAnnouncements = [];
-		blockRemovedAnnouncements = [];
-		logAddedAnnouncements = [];
-		logRemovedAnnouncements = [];
+		announcements = [];
 
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778, "BBBB", "AAAA"));
 
-		expect(blockAddedAnnouncements).to.deep.equal([new MockBlock(0x7778, "BBBB", "AAAA")]);
-		expect(blockRemovedAnnouncements).to.deep.equal([new MockBlock(0x7778, "AAAA", "AAAA")]);
-		expect(logAddedAnnouncements).to.deep.equal([new MockLog(0x7778, 0)]);
-		expect(logRemovedAnnouncements).to.deep.equal([new MockLog(0x7778, 0)]);
+		expect(announcements).to.deep.equal([
+			{addition: false, item: new MockLog(0x7778, 0, 'AAAA')},
+			{addition: false, item: new MockBlock(0x7778, "AAAA", "AAAA")},
+			{addition: true, item: new MockBlock(0x7778, "BBBB", "AAAA")},
+			{addition: true, item: new MockLog(0x7778, 0, 'BBBB')},
+		]);
 	});
 
 	it("latest block is latest fully reconciled block", async () => {
@@ -541,31 +543,42 @@ describe("BlockAndLogStreamer", async () => {
 	});
 
 	it("adding multiple blocks in quick succession results in expected callbacks", async () => {
+		const logs = [
+			new MockLog(0x7777, 0, 'AAAA'),
+			new MockLog(0x7778, 0, 'AAAA'),
+			new MockLog(0x7779, 0, 'AAAA'),
+			new MockLog(0x7779, 0, 'BBBB'),
+		];
+		const getLogs = async (filterOptions: FilterOptions) => [logs.shift()!];
+		reinitialize(getBlockByHashFactory(), getLogs);
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777, "AAAA", "AAAA"));
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "AAAA", "AAAA"));
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "BBBB", "AAAA"));
 
-		expect(blockAddedAnnouncements).to.deep.equal([
-			new MockBlock(0x7777, "AAAA", "AAAA"),
-			new MockBlock(0x7778, "AAAA", "AAAA"),
-			new MockBlock(0x7779, "AAAA", "AAAA"),
-			new MockBlock(0x7779, "BBBB", "AAAA"),
-		]);
-		expect(blockRemovedAnnouncements).to.deep.equal([
-			new MockBlock(0x7779, "AAAA", "AAAA"),
-		]);
-		expect(logAddedAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0),
-			new MockLog(0x7778, 0),
-			new MockLog(0x7779, 0),
-			new MockLog(0x7779, 0),
-		]);
-		expect(logRemovedAnnouncements).to.deep.equal([
-			new MockLog(0x7779, 0),
+		expect(announcements).to.deep.equal([
+			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
+			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
+			{addition: true, item: new MockLog(0x7778, 0)},
+			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new MockLog(0x7779, 0)},
+			{addition: false, item: new MockLog(0x7779, 0)},
+			{addition: false, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
+			{addition: true, item: new MockLog(0x7779, 0, "BBBB")},
 		]);
 	});
 
 	it("swallows errors from callbacks", async () => {
+		const logs = [
+			new MockLog(0x7777, 0, 'AAAA'),
+			new MockLog(0x7778, 0, 'AAAA'),
+			new MockLog(0x7779, 0, 'AAAA'),
+			new MockLog(0x7779, 0, 'BBBB'),
+		];
+		const getLogs = async (filterOptions: FilterOptions) => [logs.shift()!];
+		reinitialize(getBlockByHashFactory(), getLogs);
+
 		blockAndLogStreamer.subscribeToOnBlockAdded(block => { throw new Error("apple"); });
 		blockAndLogStreamer.subscribeToOnBlockRemoved(block => { throw new Error("banana"); });
 		blockAndLogStreamer.subscribeToOnLogAdded(log => { throw new Error("cherry"); });
@@ -575,23 +588,27 @@ describe("BlockAndLogStreamer", async () => {
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "AAAA", "AAAA"));
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "BBBB", "AAAA"));
 
-		expect(blockAddedAnnouncements).to.deep.equal([
-			new MockBlock(0x7777, "AAAA", "AAAA"),
-			new MockBlock(0x7778, "AAAA", "AAAA"),
-			new MockBlock(0x7779, "AAAA", "AAAA"),
-			new MockBlock(0x7779, "BBBB", "AAAA"),
-		]);
-		expect(blockRemovedAnnouncements).to.deep.equal([
-			new MockBlock(0x7779, "AAAA", "AAAA"),
-		]);
-		expect(logAddedAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0),
-			new MockLog(0x7778, 0),
-			new MockLog(0x7779, 0),
-			new MockLog(0x7779, 0),
-		]);
-		expect(logRemovedAnnouncements).to.deep.equal([
-			new MockLog(0x7779, 0),
+		expect(announcements).to.deep.equal([
+			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
+			{addition: true, item: new Error("apple")},
+			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new Error("cherry")},
+			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
+			{addition: true, item: new Error("apple")},
+			{addition: true, item: new MockLog(0x7778, 0)},
+			{addition: true, item: new Error("cherry")},
+			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new Error("apple")},
+			{addition: true, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new Error("cherry")},
+			{addition: false, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new Error("durian")},
+			{addition: false, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new Error("banana")},
+			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
+			{addition: true, item: new Error("apple")},
+			{addition: true, item: new MockLog(0x7779, 0, "BBBB")},
+			{addition: true, item: new Error("cherry")},
 		]);
 	});
 
@@ -624,7 +641,7 @@ describe("BlockAndLogStreamer", async () => {
 			++getLogsCallCount;
 			return [];
 		}
-		blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHashFactory(), getLogs);
+		blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHashFactory(), getLogs, onError);
 		blockAndLogStreamer.addLogFilter({ address: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef", topics: [] });
 		blockAndLogStreamer.addLogFilter({ address: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef", topics: ["0xbadf00dbadf00dbadf00dbadf00dbadf00dbadf00dbadf00dbadf00dbaadf00d"] });
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
@@ -638,7 +655,7 @@ describe("BlockAndLogStreamer", async () => {
 			++getLogsCallCount;
 			return [];
 		}
-		blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHashFactory(), getLogs);
+		blockAndLogStreamer = new BlockAndLogStreamer(getBlockByHashFactory(), getLogs, onError);
 		const filterAToken = blockAndLogStreamer.addLogFilter({ address: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef", topics: [] });
 		const filterBToken = blockAndLogStreamer.addLogFilter({ address: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef", topics: ["0xbadf00dbadf00dbadf00dbadf00dbadf00dbadf00dbadf00dbadf00dbaadf00d"] });
 		blockAndLogStreamer.removeLogFilter(filterAToken);
@@ -646,5 +663,61 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
 
 		expect(getLogsCallCount).to.equal(0);
+	});
+
+	it("does not announce or make changes to state if we get logs for wrong block", async () => {
+		const defaultGetLogs = getLogsFactory(1);
+		const forkedGetLogs = getLogsFactory(1, 'BBBB');
+		const getLogs = async (filterOptions: FilterOptions) => (filterOptions.fromBlock === '0x7778' || filterOptions.fromBlock === '0x7779') ? forkedGetLogs(filterOptions) : defaultGetLogs(filterOptions);
+		reinitialize(getBlockByHashFactory([new MockBlock(0x7778, 'BBBB', 'AAAA')]), getLogs);
+
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778)).catch(() => {});
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, 'BBBB'));
+
+		expect(announcements).to.deep.equal([
+			{addition: true, item: new MockBlock(0x7777)},
+			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockBlock(0x7778, 'BBBB', 'AAAA')},
+			{addition: true, item: new MockLog(0x7778, 0, 'BBBB')},
+			{addition: true, item: new MockBlock(0x7779, 'BBBB')},
+			{addition: true, item: new MockLog(0x7779, 0, 'BBBB')},
+		]);
+	});
+
+	it("does not announce or make changes to state if we can't fetch a parent block", async () => {
+		const defaultGetBlockByHash = getBlockByHashFactory();
+		const getBlockByHash = async (hash: string) => (hash === '0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cBBBB7778') ? null : defaultGetBlockByHash(hash);
+		reinitialize(getBlockByHash, getLogsFactory(1));
+
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778));
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, 'BBBB', 'BBBB')).catch(() => {});
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779));
+
+		expect(announcements).to.deep.equal([
+			{addition: true, item: new MockBlock(0x7777)},
+			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockBlock(0x7778)},
+			{addition: true, item: new MockLog(0x7778, 0)},
+			{addition: true, item: new MockBlock(0x7779)},
+			{addition: true, item: new MockLog(0x7779, 0)},
+		]);
+	});
+
+	it("non-awaited reconciliation failure will result in failure of following reconciliation", async () => {
+		const defaultGetBlockByHash = getBlockByHashFactory();
+		const getBlockByHash = async (hash: string) => (hash === '0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cBBBB7778') ? null : defaultGetBlockByHash(hash);
+		reinitialize(getBlockByHash, getLogsFactory(0));
+
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778));
+		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, 'BBBB', 'BBBB')).catch(() => {});
+		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779)).catch(() => {});
+
+		expect(announcements).to.deep.equal([
+			{addition: true, item: new MockBlock(0x7777)},
+			{addition: true, item: new MockBlock(0x7778)},
+		]);
 	});
 });

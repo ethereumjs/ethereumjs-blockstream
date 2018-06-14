@@ -24,7 +24,8 @@ export function getLogsFactory(logsPerFilter: number, fork: string = "AAAA") {
 		const logs = [];
 		let logIndex = 0;
 		for (let i = 0; i < logsPerFilter; ++i) {
-			logs.push(new MockLog(parseInt(filterOptions.toBlock!, 16), logIndex++, fork));
+			const blockNumber = parseInt(filterOptions.toBlock!, 16);
+			logs.push(new MockLog(blockNumber, logIndex++, fork));
 		}
 		return logs;
 	};

@@ -4,8 +4,7 @@
     "tests/helpers.ts"
   ],
   "tests": [
-    "tests/index.ts",
-    "tests/es5.js"
+    "tests/index.ts"
   ],
   "env": {
     "type": "node"

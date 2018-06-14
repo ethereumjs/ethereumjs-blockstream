@@ -1,5 +1,4 @@
 import { Block } from "./models/block";
-import { BlockHistory } from "./models/block-history";
 import { Log } from "./models/log";
 import { Filter, FilterOptions } from "./models/filters";
 import { LogHistory } from "./models/log-history";
@@ -15,10 +14,10 @@ export const reconcileLogHistoryWithAddedBlock = async <TBlock extends Block, TL
 ): Promise<LogHistory<TLog>> => {
 	logHistory = await logHistory;
 	const logs = await getFilteredLogs(getLogs, newBlock, filters);
+	ensureBlockhash(newBlock, logs);
 	logHistory = await addNewLogsToHead(logHistory, logs, onLogAdded);
 	logHistory = await pruneOldLogs(logHistory, newBlock, historyBlockLength);
 	return logHistory;
-	// TODO: validate logs are part of expected block hash
 }
 
 const getFilteredLogs = async <TBlock extends Block, TLog extends Log>(getLogs: (filterOptions: FilterOptions) => Promise<Array<TLog>>, newBlock: TBlock, filters: Array<Filter>): Promise<Array<TLog>> => {
@@ -61,6 +60,13 @@ const ensureOrder = <TLog extends Log>(headLog: TLog | undefined, newLog: TLog) 
 	const headLogIndex = parseInt(headLog.logIndex, 16);
 	const newLogIndex = parseInt(newLog.logIndex, 16);
 	if (headLogIndex >= newLogIndex) throw new Error(`received log with same block number (${newLogBlockNumber}) but index (${newLogIndex}) is the same or older than previous index (${headLogIndex})`);
+}
+
+const ensureBlockhash = <TBlock extends Block, TLog extends Log>(block: TBlock, logs: Array<TLog>) => {
+	// FIXME: This technique for verifying we got the right logs will not work if there were no logs present in the block!  This means it is possible to miss logs.  Can be fixed once https://eips.ethereum.org/EIPS/eip-234 is implemented
+	logs.forEach(log => {
+		if (log.blockHash !== block.hash) throw new Error(`Received log for block hash ${log.blockHash} when asking for logs of block ${block.hash}.`);
+	});
 }
 
 export const reconcileLogHistoryWithRemovedBlock = async <TBlock extends Block, TLog extends Log>(
