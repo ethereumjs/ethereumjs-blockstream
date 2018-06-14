@@ -20,18 +20,18 @@
   },
   "homepage": "https://github.com/ethereumjs/ethereumjs-blockstream#readme",
   "devDependencies": {
-    "@types/chai": "3.4.35",
-    "@types/chai-as-promised": "0.0.30",
-    "@types/mocha": "2.2.40",
+    "@types/chai": "4.1.4",
+    "@types/chai-as-promised": "7.1.0",
+    "@types/mocha": "5.2.2",
     "@types/source-map-support": "0.2.28",
     "@types/uuid": "2.0.29",
     "chai": "3.5.0",
     "chai-as-promised": "6.0.0",
     "chai-immutable": "1.6.0",
     "copyfiles": "1.2.0",
-    "coveralls": "2.13.0",
+    "coveralls": "3.0.1",
     "istanbul": "0.4.5",
-    "mocha": "3.2.0",
+    "mocha": "5.2.0",
     "typescript": "2.2.2"
   },
   "dependencies": {
