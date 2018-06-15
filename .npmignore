@@ -1,6 +1,5 @@
 node_modules/
 .git/
-output/tests/
 tests/
 .vscode/
 output/.editorconfig

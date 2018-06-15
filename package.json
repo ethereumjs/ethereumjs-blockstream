@@ -5,9 +5,9 @@
   "main": "output/source/index.js",
   "types": "output/source/index.d.ts",
   "scripts": {
-    "build": "copyfiles tests/es5.js output/ && tsc",
-    "pretest": "npm run build",
-    "test": "mocha output/tests"
+    "build": "tsc",
+    "prepublishOnly": "npm run test && tsc",
+    "test": "mocha --require ts-node/register tests/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -20,23 +20,24 @@
   },
   "homepage": "https://github.com/ethereumjs/ethereumjs-blockstream#readme",
   "devDependencies": {
-    "@types/chai": "3.4.35",
-    "@types/chai-as-promised": "0.0.30",
-    "@types/mocha": "2.2.40",
-    "@types/source-map-support": "0.2.28",
-    "@types/uuid": "2.0.29",
+    "@types/chai": "4.1.4",
+    "@types/chai-as-promised": "7.1.0",
+    "@types/mocha": "5.2.2",
+    "@types/source-map-support": "0.4.1",
+    "@types/uuid": "3.4.3",
     "chai": "3.5.0",
-    "chai-as-promised": "6.0.0",
+    "chai-as-promised": "7.1.1",
     "chai-immutable": "1.6.0",
-    "copyfiles": "1.2.0",
-    "coveralls": "2.13.0",
+    "copyfiles": "2.0.0",
+    "coveralls": "3.0.1",
     "istanbul": "0.4.5",
-    "mocha": "3.2.0",
-    "typescript": "2.2.2"
+    "mocha": "5.2.0",
+    "ts-node": "^6.1.1",
+    "typescript": "2.9.2"
   },
   "dependencies": {
     "immutable": "3.8.2",
-    "source-map-support": "0.4.14",
-    "uuid": "3.0.1"
+    "source-map-support": "0.5.6",
+    "uuid": "3.2.1"
   }
 }
