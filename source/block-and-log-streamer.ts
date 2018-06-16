@@ -9,15 +9,23 @@ import { reconcileLogHistoryWithAddedBlock, reconcileLogHistoryWithRemovedBlock 
 import { List as ImmutableList } from "immutable";
 import * as createUuid from "uuid";
 
+export interface Configuration {
+	/** number of blocks to retain in history, defaults to 100 */
+	blockRetention?: number
+}
+
 export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
-	private blockHistory: Promise<BlockHistory<TBlock>> = Promise.resolve(ImmutableList<TBlock>());
-	private logHistory: Promise<LogHistory<TLog>> = Promise.resolve(ImmutableList<TLog>());
-	private latestBlock: TBlock | null = null;
+	private lastKnownGoodBlockHistory: BlockHistory<TBlock> = ImmutableList<TBlock>();
+	private blockHistory: Promise<BlockHistory<TBlock>> = Promise.resolve(this.lastKnownGoodBlockHistory);
+	private lastKnownGoodLogHistory: LogHistory<TLog> = ImmutableList<TLog>();
+	private logHistory: Promise<LogHistory<TLog>> = Promise.resolve(this.lastKnownGoodLogHistory);
+	private pendingCallbacks: Array<() => void> = [];
 
 	private readonly blockRetention: number;
 
 	private readonly getBlockByHash: (hash: string) => Promise<TBlock | null>;
 	private readonly getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>;
+	private readonly onError: (error: Error) => void = () => {};
 
 	private readonly logFilters: { [propName: string]: Filter } = {}
 	private readonly onBlockAddedSubscribers: { [propName: string]: (block: TBlock) => void } = {};
@@ -25,91 +33,85 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	private readonly onLogAddedSubscribers: { [propName: string]: (log: TLog) => void } = {};
 	private readonly onLogRemovedSubscribers: { [propName: string]: (log: TLog) => void } = {};
 
+	/**
+	 * @param getBlockByHash async function that returns a block given a particular hash or null/throws if the block is not found
+	 * @param getLogs async function that returns the logs matching the given filter
+	 * @param onError called if a subscriber throws an error, the error will otherwise be swallowed
+	 * @param configuration additional optional configuration items
+	 */
 	constructor(
 		getBlockByHash: (hash: string) => Promise<TBlock | null>,
 		getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>,
-		configuration?: { blockRetention?: number },
+		onError: (error: Error) => void,
+		configuration?: Configuration,
 	) {
+		if (getBlockByHash === undefined) throw new Error(`getBlockByHash must be provided`);
 		this.getBlockByHash = getBlockByHash;
+		if (getLogs === undefined) throw new Error(`getLogs must be provided`);
 		this.getLogs = getLogs;
+		if (onError === undefined) throw new Error(`onError must be provided`);
+		this.onError = onError;
 		this.blockRetention = (configuration && configuration.blockRetention) ? configuration.blockRetention : 100;
 	}
 
-	static createCallbackStyle = <TBlock extends Block, TLog extends Log>(
-		getBlockByHash: (hash: string, callback: (error?: Error, block?: TBlock | null) => void) => void,
-		getLogs: (filterOptions: FilterOptions, callback: (error?: Error, logs?: TLog[]) => void) => void,
-		configuration?: { blockRetention?: number },
-	): BlockAndLogStreamer<TBlock, TLog> => {
-		console.warn(`Deprecation Warning: The callback interface for ethereumjs-blockstream is deprecated and will be removed in a future version of this library.  Use BlockAndLogStreamer constructor instead.`);
-		const wrappedGetBlockByHash = (hash: string): Promise<TBlock | null> => {
-			return new Promise<TBlock | null>((resolve, reject) => {
-				getBlockByHash(hash, (error, block) => {
-					if (error) throw error;
-					else resolve(block);
-				});
-			});
-		};
-		const wrappedGetLogs = (filterOptions: FilterOptions): Promise<Array<TLog>> => new Promise<Array<TLog>>((resolve, reject) => {
-			getLogs(filterOptions, (error, logs) => {
-				if (error) throw error;
-				if (!logs) throw new Error("Received null/undefined logs and no error.");
-				resolve(logs);
-			});
-		});
-		return new BlockAndLogStreamer<TBlock, TLog>(wrappedGetBlockByHash, wrappedGetLogs, configuration);
-	}
-
 	public readonly reconcileNewBlock = async (block: TBlock): Promise<void> => {
-		this.blockHistory = reconcileBlockHistory(this.getBlockByHash, this.blockHistory, block, this.onBlockAdded, this.onBlockRemoved, this.blockRetention);
-		const blockHistory = await this.blockHistory;
-		this.latestBlock = blockHistory.last();
-	};
-
-	public readonly reconcileNewBlockCallbackStyle = async (block: TBlock, callback: (error?: Error) => void): Promise<void> => {
-		console.warn(`Deprecation Warning: The callback interface for ethereumjs-blockstream is deprecated and will be removed in a future version of this library.  Use BlockAndLogStreamer.reconcileNewBlock instead.`);
-		this.reconcileNewBlock(block)
-			.then(() => callback(undefined))
-			.catch(error => callback(error));
+		try {
+			this.blockHistory = reconcileBlockHistory(this.getBlockByHash, this.blockHistory, block, this.onBlockAdded, this.onBlockRemoved, this.blockRetention);
+			const blockHistory = await this.blockHistory;
+			const logHistory = await this.logHistory;
+			// everything reconciled correctly, checkpoint state
+			this.lastKnownGoodBlockHistory = blockHistory;
+			this.lastKnownGoodLogHistory = logHistory;
+			this.pendingCallbacks.forEach(callback => callback());
+			this.pendingCallbacks = [];
+		} catch (error) {
+			// NOTE: this catch block may be hit multiple times for a single failure root cause, thus we need to be careful to only do idempotent operations in here
+			// something went wrong, rollback to last checkpoint
+			this.blockHistory = Promise.resolve(this.lastKnownGoodBlockHistory);
+			this.logHistory = Promise.resolve(this.lastKnownGoodLogHistory);
+			this.pendingCallbacks = [];
+			throw error;
+		}
 	};
 
 	private readonly onBlockAdded = async (block: TBlock): Promise<void> => {
-		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key]);
-		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention);
-
-		await this.logHistory;
 		Object.keys(this.onBlockAddedSubscribers)
 			.map((key: string) => this.onBlockAddedSubscribers[key])
-			.map(callback => logAndSwallowWrapper(callback))
-			.forEach(callback => callback(block));
+			.map(callback => logAndSwallowWrapper(callback, this.onError))
+			.forEach(callback => this.pendingCallbacks.push(() => callback(block)));
+
+		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key]);
+		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention);
+		await this.logHistory;
 	};
 
 	private readonly onBlockRemoved = async (block: TBlock): Promise<void> => {
 		this.logHistory = reconcileLogHistoryWithRemovedBlock(this.logHistory, block, this.onLogRemoved);
-
 		await this.logHistory;
+
 		Object.keys(this.onBlockRemovedSubscribers)
 			.map((key: string) => this.onBlockRemovedSubscribers[key])
-			.map(callback => logAndSwallowWrapper(callback))
-			.forEach(callback => callback(block));
+			.map(callback => logAndSwallowWrapper(callback, this.onError))
+			.forEach(callback => this.pendingCallbacks.push(() => callback(block)));
 	};
 
 	private readonly onLogAdded = async (log: TLog): Promise<void> => {
 		Object.keys(this.onLogAddedSubscribers)
 			.map((key: string) => this.onLogAddedSubscribers[key])
-			.map(callback => logAndSwallowWrapper(callback))
-			.forEach(callback => callback(log));
+			.map(callback => logAndSwallowWrapper(callback, this.onError))
+			.forEach(callback => this.pendingCallbacks.push(() => callback(log)));
 	};
 
 	private readonly onLogRemoved = async (log: TLog): Promise<void> => {
 		Object.keys(this.onLogRemovedSubscribers)
 			.map((key: string) => this.onLogRemovedSubscribers[key])
-			.map(callback => logAndSwallowWrapper(callback))
-			.forEach(callback => callback(log));
+			.map(callback => logAndSwallowWrapper(callback, this.onError))
+			.forEach(callback => this.pendingCallbacks.push(() => callback(log)));
 	};
 
 
 	public readonly getLatestReconciledBlock = (): TBlock | null => {
-		return this.latestBlock;
+		return this.lastKnownGoodBlockHistory.isEmpty() ? null : this.lastKnownGoodBlockHistory.last();
 	};
 
 
@@ -173,12 +175,12 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 }
 
-function logAndSwallowWrapper<T>(callback: (arg: T) => void): (arg: T) => void {
+function logAndSwallowWrapper<T>(callback: (arg: T) => void, onError: (error: Error) => void): (arg: T) => void {
 	return function (parameter) {
 		try {
 			callback(parameter);
 		} catch (error) {
-			console.log(error);
+			onError(error);
 		}
 	};
 }
