@@ -58,9 +58,9 @@ console.log(blockAndLogStreamer.getLatestReconciledBlock());
 
 ## Signatures
 Note: if you have a TypeScript aware editor this will all be available in the tooltip
-* [Filter/FilterOptions](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/source/models/filters.ts#L1-L10) - More details at [Parity JSON-RPC Wiki](https://github.com/paritytech/parity/wiki/JSONRPC-eth-module#eth_newfilter)
-* [Block](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/source/models/block.ts#L3-L22) - More details at [Parity JSON-RPC Wiki](https://github.com/paritytech/parity/wiki/JSONRPC-eth-module#eth_getblockbyhash)
-* [Log](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/source/models/log.ts#L1-L10) - More details at [Parity JSON-RPC Wiki](https://github.com/paritytech/parity/wiki/JSONRPC-eth-module#eth_getfilterchanges)
+* [Filter/FilterOptions](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/source/models/filters.ts#L1-L10) - More details at [Parity JSON-RPC Wiki](https://wiki.parity.io/JSONRPC-eth-module#eth_newfilter)
+* [Block](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/source/models/block.ts#L3-L22) - More details at [Parity JSON-RPC Wiki](https://wiki.parity.io/JSONRPC-eth-module#eth_getblockbyhash)
+* [Log](https://github.com/ethereumjs/ethereumjs-blockstream/blob/master/source/models/log.ts#L1-L10) - More details at [Parity JSON-RPC Wiki](https://wiki.parity.io/JSONRPC-eth-module#eth_getfilterchanges)
 
 # Development
 
