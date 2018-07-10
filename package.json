@@ -1,5 +1,5 @@
 {
-  "name": "ethereumjs-blockstream",
+  "name": "augur-blockstream",
   "version": "5.0.0",
   "description": "A library to turn an unreliable remote source of Ethereum blocks into a reliable stream of blocks with removals on re-orgs and backfills on skips.",
   "main": "output/source/index.js",
