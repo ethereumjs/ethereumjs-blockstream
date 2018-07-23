@@ -509,8 +509,8 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
 
 		expect(announcements).to.deep.equal([
-			{addition: true, item: new MockBlock(0x7777)},
 			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockBlock(0x7777)},
 		]);
 	});
 
@@ -528,8 +528,8 @@ describe("BlockAndLogStreamer", async () => {
 		expect(announcements).to.deep.equal([
 			{addition: false, item: new MockLog(0x7778, 0, 'AAAA')},
 			{addition: false, item: new MockBlock(0x7778, "AAAA", "AAAA")},
-			{addition: true, item: new MockBlock(0x7778, "BBBB", "AAAA")},
 			{addition: true, item: new MockLog(0x7778, 0, 'BBBB')},
+			{addition: true, item: new MockBlock(0x7778, "BBBB", "AAAA")},
 		]);
 	});
 
@@ -556,16 +556,16 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "BBBB", "AAAA"));
 
 		expect(announcements).to.deep.equal([
-			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
 			{addition: true, item: new MockLog(0x7777, 0)},
-			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
+			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
 			{addition: true, item: new MockLog(0x7778, 0)},
-			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
 			{addition: true, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
 			{addition: false, item: new MockLog(0x7779, 0)},
 			{addition: false, item: new MockBlock(0x7779, "AAAA", "AAAA")},
-			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
 			{addition: true, item: new MockLog(0x7779, 0, "BBBB")},
+			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
 		]);
 	});
 
@@ -589,26 +589,26 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "BBBB", "AAAA"));
 
 		expect(announcements).to.deep.equal([
-			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
-			{addition: true, item: new Error("apple")},
 			{addition: true, item: new MockLog(0x7777, 0)},
 			{addition: true, item: new Error("cherry")},
-			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
+			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
 			{addition: true, item: new Error("apple")},
 			{addition: true, item: new MockLog(0x7778, 0)},
 			{addition: true, item: new Error("cherry")},
-			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
 			{addition: true, item: new Error("apple")},
 			{addition: true, item: new MockLog(0x7779, 0)},
 			{addition: true, item: new Error("cherry")},
+			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
+			{addition: true, item: new Error("apple")},
 			{addition: false, item: new MockLog(0x7779, 0)},
 			{addition: true, item: new Error("durian")},
 			{addition: false, item: new MockBlock(0x7779, "AAAA", "AAAA")},
 			{addition: true, item: new Error("banana")},
-			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
-			{addition: true, item: new Error("apple")},
 			{addition: true, item: new MockLog(0x7779, 0, "BBBB")},
 			{addition: true, item: new Error("cherry")},
+			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
+			{addition: true, item: new Error("apple")},
 		]);
 	});
 
@@ -676,12 +676,12 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, 'BBBB'));
 
 		expect(announcements).to.deep.equal([
-			{addition: true, item: new MockBlock(0x7777)},
 			{addition: true, item: new MockLog(0x7777, 0)},
-			{addition: true, item: new MockBlock(0x7778, 'BBBB', 'AAAA')},
+			{addition: true, item: new MockBlock(0x7777)},
 			{addition: true, item: new MockLog(0x7778, 0, 'BBBB')},
-			{addition: true, item: new MockBlock(0x7779, 'BBBB')},
+			{addition: true, item: new MockBlock(0x7778, 'BBBB', 'AAAA')},
 			{addition: true, item: new MockLog(0x7779, 0, 'BBBB')},
+			{addition: true, item: new MockBlock(0x7779, 'BBBB')},
 		]);
 	});
 
@@ -696,12 +696,12 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779));
 
 		expect(announcements).to.deep.equal([
-			{addition: true, item: new MockBlock(0x7777)},
 			{addition: true, item: new MockLog(0x7777, 0)},
-			{addition: true, item: new MockBlock(0x7778)},
+			{addition: true, item: new MockBlock(0x7777)},
 			{addition: true, item: new MockLog(0x7778, 0)},
-			{addition: true, item: new MockBlock(0x7779)},
+			{addition: true, item: new MockBlock(0x7778)},
 			{addition: true, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new MockBlock(0x7779)},
 		]);
 	});
 
