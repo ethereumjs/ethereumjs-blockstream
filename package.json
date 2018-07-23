@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ethereumjs/ethereumjs-blockstream.git"
+    "url": "git+https://github.com/augurproject/ethereumjs-blockstream.git"
   },
   "author": "Micah Zoltu",
   "license": "CC0-1.0",
   "bugs": {
-    "url": "https://github.com/ethereumjs/ethereumjs-blockstream/issues"
+    "url": "https://github.com/augurproject/ethereumjs-blockstream/issues"
   },
-  "homepage": "https://github.com/ethereumjs/ethereumjs-blockstream#readme",
+  "homepage": "https://github.com/augurproject/ethereumjs-blockstream#readme",
   "devDependencies": {
     "@types/chai": "4.1.4",
     "@types/chai-as-promised": "7.1.0",
