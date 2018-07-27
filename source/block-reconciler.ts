@@ -63,12 +63,10 @@ const backfill = async <TBlock extends Block>(
 	const parentBlock = await getBlockByHash(newBlock.parentHash);
 	if (parentBlock === null) throw new Error("Failed to fetch parent block.");
 	if (parentBlock.hash !== newBlock.parentHash) {
-		console.log("AKH wrong block fetched...");
 		throw new Error("Incorrect block returned from `getBlockByHash` call");
 	}
 	if (parseInt(parentBlock.number, 16) + blockRetention < parseInt(blockHistory.last().number, 16))
 		return await rollback(blockHistory, onBlockRemoved);
-	console.log("backfill:::", blockRetention);
 	blockHistory = await reconcileBlockHistory(
 		getBlockByHash,
 		blockHistory,
