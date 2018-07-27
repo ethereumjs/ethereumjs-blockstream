@@ -1,13 +1,13 @@
-import { Block } from './models/block';
-import { Log } from './models/log';
-import { Filter, FilterOptions } from './models/filters';
-import { BlockHistory } from './models/block-history';
-import { LogHistory } from './models/log-history';
-import { reconcileBlockHistory } from './block-reconciler';
-import { reconcileLogHistoryWithAddedBlock, reconcileLogHistoryWithRemovedBlock } from './log-reconciler';
+import { Block } from "./models/block";
+import { Log } from "./models/log";
+import { Filter, FilterOptions } from "./models/filters";
+import { BlockHistory } from "./models/block-history";
+import { LogHistory } from "./models/log-history";
+import { reconcileBlockHistory } from "./block-reconciler";
+import { reconcileLogHistoryWithAddedBlock, reconcileLogHistoryWithRemovedBlock } from "./log-reconciler";
 
-import { List as ImmutableList } from 'immutable';
-import * as createUuid from 'uuid';
+import { List as ImmutableList } from "immutable";
+import * as createUuid from "uuid";
 
 export interface Configuration {
 	/** number of blocks to retain in history, defaults to 100 */
@@ -81,7 +81,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 			this.pendingCallbacks.forEach(callback => callback());
 			this.pendingCallbacks = [];
 		} catch (error) {
-			console.log('BlockAndLogStreamer', error);
+			console.log("BlockAndLogStreamer", error);
 			// NOTE: this catch block may be hit multiple times for a single failure root cause, thus we need to be
 			// careful to only do idempotent operations in here something went wrong, rollback to last checkpoint
 			this.blockHistory = Promise.resolve(this.lastKnownGoodBlockHistory);
@@ -144,7 +144,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 	public readonly removeLogFilter = (token: string): void => {
-		if (!token.startsWith('log filter token ')) throw new Error(`Expected a log filter token.  Actual: ${token}`);
+		if (!token.startsWith("log filter token ")) throw new Error(`Expected a log filter token.  Actual: ${token}`);
 		delete this.logFilters[token];
 	};
 
@@ -155,7 +155,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 	public readonly unsubscribeFromOnBlockAdded = (token: string) => {
-		if (!token.startsWith('on block added token '))
+		if (!token.startsWith("on block added token "))
 			throw new Error(`Expected a block added subscription token.  Actual: ${token}`);
 		delete this.onBlockAddedSubscribers[token];
 	};
@@ -167,7 +167,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 	public readonly unsubscribeFromOnBlockRemoved = (token: string) => {
-		if (!token.startsWith('on block removed token '))
+		if (!token.startsWith("on block removed token "))
 			throw new Error(`Expected a block added subscription token.  Actual: ${token}`);
 		delete this.onBlockRemovedSubscribers[token];
 	};
@@ -179,7 +179,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 	public readonly unsubscribeFromOnLogAdded = (token: string) => {
-		if (!token.startsWith('on log added token '))
+		if (!token.startsWith("on log added token "))
 			throw new Error(`Expected a log added subscription token.  Actual: ${token}`);
 		delete this.onLogAddedSubscribers[token];
 	};
@@ -191,7 +191,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 	public readonly unsubscribeFromOnLogRemoved = (token: string) => {
-		if (!token.startsWith('on log removed token '))
+		if (!token.startsWith("on log removed token "))
 			throw new Error(`Expected a log added subscription token.  Actual: ${token}`);
 		delete this.onLogRemovedSubscribers[token];
 	};

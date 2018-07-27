@@ -1,7 +1,7 @@
-import { Block } from './models/block';
-import { Log } from './models/log';
-import { Filter, FilterOptions } from './models/filters';
-import { LogHistory } from './models/log-history';
+import { Block } from "./models/block";
+import { Log } from "./models/log";
+import { Filter, FilterOptions } from "./models/filters";
+import { LogHistory } from "./models/log-history";
 
 export const reconcileLogHistoryWithAddedBlock = async <TBlock extends Block, TLog extends Log>(
 	getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>,
@@ -124,7 +124,7 @@ export const reconcileLogHistoryWithRemovedBlock = async <TBlock extends Block, 
 
 	// sanity check, no known way to trigger the error
 	if (logHistory.some(log => log!.blockHash === removedBlock.hash))
-		throw new Error('found logs for removed block not at head of log history');
+		throw new Error("found logs for removed block not at head of log history");
 
 	return logHistory;
 };

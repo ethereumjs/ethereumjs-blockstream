@@ -1,5 +1,5 @@
-import { Block } from './models/block';
-import { BlockHistory } from './models/block-history';
+import { Block } from "./models/block";
+import { BlockHistory } from "./models/block-history";
 
 type GetBlockByHash<TBlock> = (hash: string) => Promise<TBlock | null>;
 
@@ -58,17 +58,17 @@ const backfill = async <TBlock extends Block>(
 	onBlockRemoved: (block: TBlock) => Promise<void>,
 	blockRetention: number,
 ): Promise<BlockHistory<TBlock>> => {
-	if (newBlock.parentHash === '0x0000000000000000000000000000000000000000000000000000000000000000')
+	if (newBlock.parentHash === "0x0000000000000000000000000000000000000000000000000000000000000000")
 		return await rollback(blockHistory, onBlockRemoved);
 	const parentBlock = await getBlockByHash(newBlock.parentHash);
-	if (parentBlock === null) throw new Error('Failed to fetch parent block.');
+	if (parentBlock === null) throw new Error("Failed to fetch parent block.");
 	if (parentBlock.hash !== newBlock.parentHash) {
-		console.log('AKH wrong block fetched...');
-		throw new Error('Incorrect block returned from `getBlockByHash` call');
+		console.log("AKH wrong block fetched...");
+		throw new Error("Incorrect block returned from `getBlockByHash` call");
 	}
 	if (parseInt(parentBlock.number, 16) + blockRetention < parseInt(blockHistory.last().number, 16))
 		return await rollback(blockHistory, onBlockRemoved);
-	console.log('backfill:::', blockRetention);
+	console.log("backfill:::", blockRetention);
 	blockHistory = await reconcileBlockHistory(
 		getBlockByHash,
 		blockHistory,
