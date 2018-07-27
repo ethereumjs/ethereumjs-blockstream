@@ -1,0 +1,8 @@
+output
+.nyc_outputs
+package.json
+package-lock.json
+wallaby.json
+tsconfig.json
+README.md
+.vscode
