@@ -81,7 +81,6 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 			this.pendingCallbacks.forEach(callback => callback());
 			this.pendingCallbacks = [];
 		} catch (error) {
-			console.log("BlockAndLogStreamer", error);
 			// NOTE: this catch block may be hit multiple times for a single failure root cause, thus we
 			// need to be careful to only do idempotent operations in here something went wrong, rollback
 			// to last checkpoint
