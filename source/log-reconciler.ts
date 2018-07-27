@@ -62,7 +62,8 @@ const pruneOldLogs = async <TBlock extends Block, TLog extends Log>(
 	newBlock: TBlock,
 	historyBlockLength: number,
 ): Promise<LogHistory<TLog>> => {
-	// `log!` is required until the next major version of `immutable` is published to NPM (current version 3.8.2) which improves the type definitions
+	// `log!` is required until the next major version of `immutable` is published to NPM (current version 3.8.2)
+	// which improves the type definitions
 	return logHistory
 		.skipUntil(log => parseInt(newBlock.number, 16) - parseInt(log!.blockNumber, 16) < historyBlockLength)
 		.toList();
@@ -74,7 +75,8 @@ const addNewLogToHead = async <TLog extends Log>(
 	onLogAdded: (log: TLog) => Promise<void>,
 ): Promise<LogHistory<TLog>> => {
 	logHistory = logHistory.push(newLog);
-	// CONSIDER: the user getting this notification won't have any visibility into the updated log history yet. should we announce new logs in a `setTimeout`? should we provide log history with new logs?
+	// CONSIDER: the user getting this notification won't have any visibility into the updated log history yet.
+	// should we announce new logs in a `setTimeout`? should we provide log history with new logs?
 	await onLogAdded(newLog);
 	return logHistory;
 };
@@ -97,7 +99,9 @@ const ensureOrder = <TLog extends Log>(headLog: TLog | undefined, newLog: TLog) 
 };
 
 const ensureBlockhash = <TBlock extends Block, TLog extends Log>(block: TBlock, logs: Array<TLog>) => {
-	// FIXME: This technique for verifying we got the right logs will not work if there were no logs present in the block!  This means it is possible to miss logs.  Can be fixed once https://eips.ethereum.org/EIPS/eip-234 is implemented
+	// FIXME: This technique for verifying we got the right logs will not work if there were no logs present in the
+	// block!  This means it is possible to miss logs.  Can be fixed once https://eips.ethereum.org/EIPS/eip-234 is
+	// implemented
 	logs.forEach(log => {
 		if (log.blockHash !== block.hash)
 			throw new Error(

@@ -42,7 +42,8 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	} = {};
 
 	/**
-	 * @param getBlockByHash async function that returns a block given a particular hash or null/throws if the block is not found
+	 * @param getBlockByHash async function that returns a block given a particular hash or null/throws if the block
+	 * is not found
 	 * @param getLogs async function that returns the logs matching the given filter
 	 * @param onError called if a subscriber throws an error, the error will otherwise be swallowed
 	 * @param configuration additional optional configuration items
@@ -81,8 +82,8 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 			this.pendingCallbacks = [];
 		} catch (error) {
 			console.log('BlockAndLogStreamer', error);
-			// NOTE: this catch block may be hit multiple times for a single failure root cause, thus we need to be careful to only do idempotent operations in here
-			// something went wrong, rollback to last checkpoint
+			// NOTE: this catch block may be hit multiple times for a single failure root cause, thus we need to be
+			// careful to only do idempotent operations in here something went wrong, rollback to last checkpoint
 			this.blockHistory = Promise.resolve(this.lastKnownGoodBlockHistory);
 			this.logHistory = Promise.resolve(this.lastKnownGoodLogHistory);
 			this.pendingCallbacks = [];
