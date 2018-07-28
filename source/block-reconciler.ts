@@ -11,7 +11,7 @@ export const reconcileBlockHistory = async <TBlock extends Block>(
 	onBlockRemoved: (block: TBlock) => Promise<void>,
 	blockRetention: number = 100
 ): Promise<BlockHistory<TBlock>> => {
-	blockHistory = await blockHistory;
+	blockHistory = await blockHistory
 	if (isFirstBlock(blockHistory)) return await addNewHeadBlock(blockHistory, newBlock, onBlockAdded, blockRetention)
 
 	if (isOlderThanOldestBlock(blockHistory, newBlock)) {
