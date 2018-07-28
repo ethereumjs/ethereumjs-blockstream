@@ -48,12 +48,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	 * @param onError called if a subscriber throws an error, the error will otherwise be swallowed
 	 * @param configuration additional optional configuration items
 	 */
-	constructor(
-		getBlockByHash: (hash: string) => Promise<TBlock | null>,
-		getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>,
-		onError: (error: Error) => void,
-		configuration?: Configuration
-	) {
+	constructor(getBlockByHash: (hash: string) => Promise<TBlock | null>, getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>, onError: (error: Error) => void, configuration?: Configuration) {
 		if (getBlockByHash === undefined) throw new Error(`getBlockByHash must be provided`)
 		this.getBlockByHash = getBlockByHash
 		if (getLogs === undefined) throw new Error(`getLogs must be provided`)
@@ -65,14 +60,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 
 	public readonly reconcileNewBlock = async (block: TBlock): Promise<void> => {
 		try {
-			this.blockHistory = reconcileBlockHistory(
-				this.getBlockByHash,
-				this.blockHistory,
-				block,
-				this.onBlockAdded,
-				this.onBlockRemoved,
-				this.blockRetention
-			)
+			this.blockHistory = reconcileBlockHistory(this.getBlockByHash, this.blockHistory, block, this.onBlockAdded, this.onBlockRemoved, this.blockRetention)
 			const blockHistory = await this.blockHistory
 			const logHistory = await this.logHistory
 			// everything reconciled correctly, checkpoint state
@@ -98,14 +86,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 			.forEach(callback => this.pendingCallbacks.push(() => callback(block)))
 
 		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key])
-		this.logHistory = reconcileLogHistoryWithAddedBlock(
-			this.getLogs,
-			this.logHistory,
-			block,
-			this.onLogAdded,
-			logFilters,
-			this.blockRetention
-		)
+		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention)
 		await this.logHistory
 	}
 
@@ -155,8 +136,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	}
 
 	public readonly unsubscribeFromOnBlockAdded = (token: string) => {
-		if (!token.startsWith('on block added token '))
-			throw new Error(`Expected a block added subscription token.  Actual: ${token}`)
+		if (!token.startsWith('on block added token ')) throw new Error(`Expected a block added subscription token.  Actual: ${token}`)
 		delete this.onBlockAddedSubscribers[token]
 	}
 
@@ -167,8 +147,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	}
 
 	public readonly unsubscribeFromOnBlockRemoved = (token: string) => {
-		if (!token.startsWith('on block removed token '))
-			throw new Error(`Expected a block added subscription token.  Actual: ${token}`)
+		if (!token.startsWith('on block removed token ')) throw new Error(`Expected a block added subscription token.  Actual: ${token}`)
 		delete this.onBlockRemovedSubscribers[token]
 	}
 
@@ -179,8 +158,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	}
 
 	public readonly unsubscribeFromOnLogAdded = (token: string) => {
-		if (!token.startsWith('on log added token '))
-			throw new Error(`Expected a log added subscription token.  Actual: ${token}`)
+		if (!token.startsWith('on log added token ')) throw new Error(`Expected a log added subscription token.  Actual: ${token}`)
 		delete this.onLogAddedSubscribers[token]
 	}
 
@@ -191,8 +169,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	}
 
 	public readonly unsubscribeFromOnLogRemoved = (token: string) => {
-		if (!token.startsWith('on log removed token '))
-			throw new Error(`Expected a log added subscription token.  Actual: ${token}`)
+		if (!token.startsWith('on log removed token ')) throw new Error(`Expected a log added subscription token.  Actual: ${token}`)
 		delete this.onLogRemovedSubscribers[token]
 	}
 }

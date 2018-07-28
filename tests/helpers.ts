@@ -57,12 +57,8 @@ export class MockBlock implements Block {
 		if (!parentFork) parentFork = fork
 		const numberAsHex = number.toString(16)
 		const parentNumberAsHex = (number - 1).toString(16)
-		this.hash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${fork}${`0000${numberAsHex}`.substring(
-			numberAsHex.length
-		)}`
-		this.parentHash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${parentFork}${`0000${parentNumberAsHex}`.substring(
-			parentNumberAsHex.length
-		)}`
+		this.hash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${fork}${`0000${numberAsHex}`.substring(numberAsHex.length)}`
+		this.parentHash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${parentFork}${`0000${parentNumberAsHex}`.substring(parentNumberAsHex.length)}`
 		this.number = `0x${numberAsHex}`
 	}
 }
@@ -80,9 +76,7 @@ export class MockLog implements Log {
 	constructor(blockNumber: number, logIndex: number = 0x0, fork: string = 'AAAA') {
 		const blockNumberAsHex = blockNumber.toString(16)
 		this.blockNumber = '0x' + blockNumberAsHex
-		this.blockHash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${fork}${(
-			'0000' + blockNumberAsHex
-		).substring(blockNumberAsHex.length)}`
+		this.blockHash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${fork}${('0000' + blockNumberAsHex).substring(blockNumberAsHex.length)}`
 		this.logIndex = `0x${logIndex.toString(16)}`
 		this.transactionIndex = this.logIndex
 	}
