@@ -8,7 +8,8 @@
     "build": "tsc",
     "prepublishOnly": "npm run test && tsc",
         "test": "mocha --require ts-node/register tests/**/*.ts",
-        "prettier": "prettier --write '**/*.{ts,tsx,json,md}' --config .prettierrc"
+        "prettier": "prettier --write '**/*.{ts,tsx,json,md}' --config .prettierrc",
+        "prettier:ci": "prettier --list-different '**/*.{ts,tsx,json,md}' --config .prettierrc"
   },
   "repository": {
     "type": "git",
