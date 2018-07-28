@@ -198,7 +198,7 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 }
 
 function logAndSwallowWrapper<T>(callback: (arg: T) => void, onError: (error: Error) => void): (arg: T) => void {
-	return function(parameter) {
+	return parameter => {
 		try {
 			callback(parameter)
 		} catch (error) {
