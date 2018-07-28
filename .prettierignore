@@ -6,3 +6,4 @@ wallaby.json
 tsconfig.json
 README.md
 .vscode
+tests/index.ts
