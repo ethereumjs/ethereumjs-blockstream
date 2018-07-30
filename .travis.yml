@@ -9,4 +9,5 @@ before_script:
   - npm install
 
 script:
+  - npm run prettier:ci
   - npm run test
