@@ -7,7 +7,7 @@ node_js:
 
 before_script:
   - npm install
-  - npm run prettier:ci
 
 script:
+  - npm run prettier:ci
   - npm run test
