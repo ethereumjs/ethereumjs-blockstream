@@ -6,4 +6,5 @@ export interface Filter {
 export interface FilterOptions extends Filter {
 	readonly fromBlock?: string;
 	readonly toBlock?: string;
+	readonly blockHash?: string;
 }
