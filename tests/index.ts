@@ -261,8 +261,8 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
 
 		// unfortunately, because we have an immutable list of a complex object with a nested list of a complex object in it, we can't do a normal equality comparison
-		expect(newLogHistory.toJS()).to.deep.equal([new MockLog(0x7777)]);
-		expect(newLogAnnouncements).to.deep.equal([new MockLog(0x7777)]);
+		expect(newLogHistory.toJS()).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777')]);
+		expect(newLogAnnouncements).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777')]);
 	});
 
 	it("adds block with multiple logs", async () => {
@@ -274,21 +274,21 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 
 		// unfortunately, because we have an immutable list of a complex object with a nested list of a complex object in it, we can't do a normal equality comparison
 		expect(newLogHistory.toJS()).to.deep.equal([
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]);
 		expect(newLogAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]);
 	});
 
 	it("orders logs by index", async () => {
 		const getLogs = async (filterOptions: FilterOptions) => Promise.resolve([
-			new MockLog(0x7777, 0x1),
-			new MockLog(0x7777, 0x2),
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x3),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x2),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x3),
 		]);
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
@@ -296,16 +296,16 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
 
 		expect(newLogHistory.toJS()).to.deep.equal([
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
-			new MockLog(0x7777, 0x2),
-			new MockLog(0x7777, 0x3),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x2),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x3),
 		]);
 		expect(newLogAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
-			new MockLog(0x7777, 0x2),
-			new MockLog(0x7777, 0x3),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x2),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x3),
 		]);
 	});
 
@@ -342,13 +342,13 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 
 		await expect(secondLogHistoryPromise).to.eventually.rejectedWith(Error, /received log for a block (.*?) older than current head log's block (.*?)/);
 		// unfortunate reality
-		expect(newLogAnnouncements).to.deep.equal([new MockLog(0x7777)]);
+		expect(newLogAnnouncements).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777')]);
 	})
 
 	it("dedupes logs with same blockhash and index from multiple filters", async () => {
 		const getLogs = async (filterOptions: FilterOptions) => Promise.resolve([
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]);
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
@@ -356,8 +356,8 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{},{}]);
 
 		expect(newLogAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]);
 	});
 
@@ -399,61 +399,61 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 
 	it("handles block removal with no associated logs", async () => {
 		const removedBlock = new MockBlock(0x7777);
-		const oldLogHistory = Promise.resolve(ImmutableList<Log>([new MockLog(0x7776)]));
+		const oldLogHistory = Promise.resolve(ImmutableList<Log>([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776')]));
 
 		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
 
-		expect(newLogHistory.toJS()).to.deep.equal([new MockLog(0x7776)]);
+		expect(newLogHistory.toJS()).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776')]);
 		expect(removedLogAnnouncements).to.be.empty;
 	});
 
 	it("removes logs at head for given block", async () => {
 		const removedBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>([
-			new MockLog(0x7775),
-			new MockLog(0x7776),
-			new MockLog(0x7777),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777'),
 		]));
 
 		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
 
 		expect(newLogHistory.toJS()).to.deep.equal([
-			new MockLog(0x7775),
-			new MockLog(0x7776),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776'),
 		]);
-		expect(removedLogAnnouncements).to.deep.equal([new MockLog(0x7777)]);
+		expect(removedLogAnnouncements).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777')]);
 	});
 
 	it("removes multiple logs in reverse order for same block", async () => {
 		const removedBlock = new MockBlock(0x7777);
 		// NOTE: log index sorting is handled on new block processing but not validated during removal process so out-of-order indexes are only possible by manually creating history
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>([
-			new MockLog(0x7775),
-			new MockLog(0x7776),
-			new MockLog(0x7777, 0x1),
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x2),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x2),
 		]));
 
 		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
 
 		expect(newLogHistory.toJS()).to.deep.equal([
-			new MockLog(0x7775),
-			new MockLog(0x7776),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776'),
 		]);
 		expect(removedLogAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0x2),
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x2),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]);
 	});
 
 	it("throws if removed block is not at head", async () => {
 		const removedBlock = new MockBlock(0x7776);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>([
-			new MockLog(0x7775),
-			new MockLog(0x7776),
-			new MockLog(0x7777),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777'),
 		]));
 
 		const newLogHistoryPromise = reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
@@ -465,19 +465,19 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 	it("removes head logs for block before throwing upon finding nonhead logs for block", async () => {
 		const removedBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>([
-			new MockLog(0x7775),
-			new MockLog(0x7777),
-			new MockLog(0x7776),
-			new MockLog(0x7777, 0x0),
-			new MockLog(0x7777, 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]));
 
 		const newLogHistoryPromise = reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
 
 		await expect(newLogHistoryPromise).to.eventually.rejectedWith(Error, "found logs for removed block not at head of log history");
 		expect(removedLogAnnouncements).to.deep.equal([
-			new MockLog(0x7777, 0x1),
-			new MockLog(0x7777, 0x0),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
 		]);
 	});
 });
@@ -510,12 +510,12 @@ describe("BlockAndLogStreamer", async () => {
 
 		expect(announcements).to.deep.equal([
 			{addition: true, item: new MockBlock(0x7777)},
-			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0)},
 		]);
 	});
 
 	it("announces removed blocks and logs", async () => {
-		const logs = [ new MockLog(0x7777, 0, 'AAAA'), new MockLog(0x7778, 0, 'AAAA'), new MockLog(0x7778, 0, 'BBBB') ];
+		const logs = [ new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0, 'AAAA'), new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0, 'AAAA'), new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0, 'BBBB') ];
 		const getLogs = async (filterOptions: FilterOptions) => [logs.shift()!];
 		reinitialize(getBlockByHashFactory(), getLogs);
 
@@ -526,10 +526,10 @@ describe("BlockAndLogStreamer", async () => {
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778, "BBBB", "AAAA"));
 
 		expect(announcements).to.deep.equal([
-			{addition: false, item: new MockLog(0x7778, 0, 'AAAA')},
+			{addition: false, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0, 'AAAA')},
 			{addition: false, item: new MockBlock(0x7778, "AAAA", "AAAA")},
 			{addition: true, item: new MockBlock(0x7778, "BBBB", "AAAA")},
-			{addition: true, item: new MockLog(0x7778, 0, 'BBBB')},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0, 'BBBB')},
 		]);
 	});
 
@@ -544,10 +544,10 @@ describe("BlockAndLogStreamer", async () => {
 
 	it("adding multiple blocks in quick succession results in expected callbacks", async () => {
 		const logs = [
-			new MockLog(0x7777, 0, 'AAAA'),
-			new MockLog(0x7778, 0, 'AAAA'),
-			new MockLog(0x7779, 0, 'AAAA'),
-			new MockLog(0x7779, 0, 'BBBB'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0, 'AAAA'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0, 'AAAA'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0, 'AAAA'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0, 'BBBB'),
 		];
 		const getLogs = async (filterOptions: FilterOptions) => [logs.shift()!];
 		reinitialize(getBlockByHashFactory(), getLogs);
@@ -557,24 +557,24 @@ describe("BlockAndLogStreamer", async () => {
 
 		expect(announcements).to.deep.equal([
 			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
-			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0)},
 			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
-			{addition: true, item: new MockLog(0x7778, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0)},
 			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
-			{addition: true, item: new MockLog(0x7779, 0)},
-			{addition: false, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0)},
+			{addition: false, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0)},
 			{addition: false, item: new MockBlock(0x7779, "AAAA", "AAAA")},
 			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
-			{addition: true, item: new MockLog(0x7779, 0, "BBBB")},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0, "BBBB")},
 		]);
 	});
 
 	it("swallows errors from callbacks", async () => {
 		const logs = [
-			new MockLog(0x7777, 0, 'AAAA'),
-			new MockLog(0x7778, 0, 'AAAA'),
-			new MockLog(0x7779, 0, 'AAAA'),
-			new MockLog(0x7779, 0, 'BBBB'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0, 'AAAA'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0, 'AAAA'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0, 'AAAA'),
+			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0, 'BBBB'),
 		];
 		const getLogs = async (filterOptions: FilterOptions) => [logs.shift()!];
 		reinitialize(getBlockByHashFactory(), getLogs);
@@ -591,23 +591,23 @@ describe("BlockAndLogStreamer", async () => {
 		expect(announcements).to.deep.equal([
 			{addition: true, item: new MockBlock(0x7777, "AAAA", "AAAA")},
 			{addition: true, item: new Error("apple")},
-			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0)},
 			{addition: true, item: new Error("cherry")},
 			{addition: true, item: new MockBlock(0x7778, "AAAA", "AAAA")},
 			{addition: true, item: new Error("apple")},
-			{addition: true, item: new MockLog(0x7778, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0)},
 			{addition: true, item: new Error("cherry")},
 			{addition: true, item: new MockBlock(0x7779, "AAAA", "AAAA")},
 			{addition: true, item: new Error("apple")},
-			{addition: true, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0)},
 			{addition: true, item: new Error("cherry")},
-			{addition: false, item: new MockLog(0x7779, 0)},
+			{addition: false, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0)},
 			{addition: true, item: new Error("durian")},
 			{addition: false, item: new MockBlock(0x7779, "AAAA", "AAAA")},
 			{addition: true, item: new Error("banana")},
 			{addition: true, item: new MockBlock(0x7779, "BBBB", "AAAA")},
 			{addition: true, item: new Error("apple")},
-			{addition: true, item: new MockLog(0x7779, 0, "BBBB")},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0, "BBBB")},
 			{addition: true, item: new Error("cherry")},
 		]);
 	});
@@ -665,26 +665,6 @@ describe("BlockAndLogStreamer", async () => {
 		expect(getLogsCallCount).to.equal(0);
 	});
 
-	it("does not announce or make changes to state if we get logs for wrong block", async () => {
-		const defaultGetLogs = getLogsFactory(1);
-		const forkedGetLogs = getLogsFactory(1, 'BBBB');
-		const getLogs = async (filterOptions: FilterOptions) => (filterOptions.fromBlock === '0x7778' || filterOptions.fromBlock === '0x7779') ? forkedGetLogs(filterOptions) : defaultGetLogs(filterOptions);
-		reinitialize(getBlockByHashFactory([new MockBlock(0x7778, 'BBBB', 'AAAA')]), getLogs);
-
-		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777));
-		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7778)).catch(() => {});
-		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, 'BBBB'));
-
-		expect(announcements).to.deep.equal([
-			{addition: true, item: new MockBlock(0x7777)},
-			{addition: true, item: new MockLog(0x7777, 0)},
-			{addition: true, item: new MockBlock(0x7778, 'BBBB', 'AAAA')},
-			{addition: true, item: new MockLog(0x7778, 0, 'BBBB')},
-			{addition: true, item: new MockBlock(0x7779, 'BBBB')},
-			{addition: true, item: new MockLog(0x7779, 0, 'BBBB')},
-		]);
-	});
-
 	it("does not announce or make changes to state if we can't fetch a parent block", async () => {
 		const defaultGetBlockByHash = getBlockByHashFactory();
 		const getBlockByHash = async (hash: string) => (hash === '0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cBBBB7778') ? null : defaultGetBlockByHash(hash);
@@ -697,11 +677,11 @@ describe("BlockAndLogStreamer", async () => {
 
 		expect(announcements).to.deep.equal([
 			{addition: true, item: new MockBlock(0x7777)},
-			{addition: true, item: new MockLog(0x7777, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0)},
 			{addition: true, item: new MockBlock(0x7778)},
-			{addition: true, item: new MockLog(0x7778, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7778', 0)},
 			{addition: true, item: new MockBlock(0x7779)},
-			{addition: true, item: new MockLog(0x7779, 0)},
+			{addition: true, item: new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7779', 0)},
 		]);
 	});
 
