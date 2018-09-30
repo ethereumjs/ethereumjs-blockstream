@@ -1,5 +1,6 @@
 import { Block } from "./models/block";
 import { BlockHistory } from "./models/block-history";
+import { parseHexInt } from "./utilities";
 import { List as ImmutableList } from "immutable";
 
 type GetBlockByHash<TBlock> = (hash: string) => Promise<TBlock|null>;
@@ -50,7 +51,7 @@ const backfill = async <TBlock extends Block>(getBlockByHash: GetBlockByHash<TBl
 		return await rollback(blockHistory, onBlockRemoved);
 	const parentBlock = await getBlockByHash(newBlock.parentHash);
 	if (parentBlock === null) throw new Error("Failed to fetch parent block.");
-	if (parseInt(parentBlock.number, 16) + blockRetention < parseInt(blockHistory.last().number, 16))
+	if (parseHexInt(parentBlock.number) + blockRetention < parseHexInt(blockHistory.last().number))
 		return await rollback(blockHistory, onBlockRemoved);
 	blockHistory = await reconcileBlockHistory(getBlockByHash, blockHistory, parentBlock, onBlockAdded, onBlockRemoved, blockRetention);
 	return await reconcileBlockHistory(getBlockByHash, blockHistory, newBlock, onBlockAdded, onBlockRemoved, blockRetention);
@@ -77,7 +78,7 @@ const isFirstBlock = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>):
 }
 
 const isOlderThanOldestBlock = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>, newBlock: TBlock): boolean => {
-	return parseInt(blockHistory.first().number, 16) > parseInt(newBlock.number, 16);
+	return parseHexInt(blockHistory.first().number) > parseHexInt(newBlock.number);
 }
 
 const isAlreadyInHistory = <TBlock extends Block>(blockHistory: BlockHistory<TBlock>, newBlock: TBlock): boolean => {
