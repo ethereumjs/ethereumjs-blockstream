@@ -2,6 +2,11 @@
 
 A library to turn an unreliable remote source of Ethereum blocks into a reliable stream of blocks.  Handles block and log removals on chain reorganization and block and log backfills on skipped blocks.
 
+# Requirements for supported Ethereum node
+Blockstream requires support for [EIP-234](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-234.md) in the configured Ethereum node. EIP-234 was merged Jul 28, 2018 and implemented in Geth and Parity shortly after. Versions that provide the needed functionality:
+- Parity: v2.1.0+
+- geth: v1.8.13+
+
 # Usage
 
 ## Full Example

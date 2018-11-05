@@ -2,7 +2,7 @@ import { Block } from "./models/block";
 import { Log } from "./models/log";
 import { Filter, FilterOptions } from "./models/filters";
 import { LogHistory } from "./models/log-history";
-import { List as ImmutableList } from "immutable";
+import { parseHexInt } from "./utilities";
 
 export const reconcileLogHistoryWithAddedBlock = async <TBlock extends Block, TLog extends Log>(
 	getLogs: (filterOptions: FilterOptions) => Promise<TLog[]>,
@@ -14,7 +14,6 @@ export const reconcileLogHistoryWithAddedBlock = async <TBlock extends Block, TL
 ): Promise<LogHistory<TLog>> => {
 	logHistory = await logHistory;
 	const logs = await getFilteredLogs(getLogs, newBlock, filters);
-	ensureBlockhash(newBlock, logs);
 	logHistory = await addNewLogsToHead(logHistory, logs, onLogAdded);
 	logHistory = await pruneOldLogs(logHistory, newBlock, historyBlockLength);
 	return logHistory;
@@ -22,14 +21,14 @@ export const reconcileLogHistoryWithAddedBlock = async <TBlock extends Block, TL
 
 const getFilteredLogs = async <TBlock extends Block, TLog extends Log>(getLogs: (filterOptions: FilterOptions) => Promise<Array<TLog>>, newBlock: TBlock, filters: Array<Filter>): Promise<Array<TLog>> => {
 	const logPromises = filters
-		.map(filter => ({ fromBlock: newBlock.number, toBlock: newBlock.number, address: filter.address, topics: filter.topics, }))
+		.map(filter => ({ blockHash: newBlock.hash, address: filter.address, topics: filter.topics, }))
 		.map(filter => getLogs(filter));
 	const nestedLogs = await Promise.all(logPromises);
 	return nestedLogs.reduce((allLogs, logs) => allLogs.concat(logs), []);
 }
 
 const addNewLogsToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, newLogs: Array<TLog>, onLogAdded: (log: TLog) => Promise<void>): Promise<LogHistory<TLog>> => {
-	const sortedLogs = newLogs.sort((logA, logB) => parseInt(logA.logIndex, 16) - parseInt(logB.logIndex, 16));
+	const sortedLogs = newLogs.sort((logA, logB) => parseHexInt(logA.logIndex) - parseHexInt(logB.logIndex));
 	for (const logToAdd of sortedLogs) {
 		// we may already have this log because two filters can return the same log
 		if (logHistory.some(logInHistory => logInHistory!.blockHash === logToAdd.blockHash && logInHistory!.logIndex === logToAdd.logIndex)) continue;
@@ -41,7 +40,7 @@ const addNewLogsToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, 
 
 const pruneOldLogs = async <TBlock extends Block, TLog extends Log>(logHistory: LogHistory<TLog>, newBlock: TBlock, historyBlockLength: number): Promise<LogHistory<TLog>> => {
 	// `log!` is required until the next major version of `immutable` is published to NPM (current version 3.8.2) which improves the type definitions
-	return logHistory.skipUntil(log => parseInt(newBlock.number, 16) - parseInt(log!.blockNumber, 16) < historyBlockLength).toList();
+	return logHistory.skipUntil(log => parseHexInt(newBlock.number) - parseHexInt(log!.blockNumber) < historyBlockLength).toList();
 }
 
 const addNewLogToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, newLog: TLog, onLogAdded: (log: TLog) => Promise<void>): Promise<LogHistory<TLog>> => {
@@ -53,20 +52,13 @@ const addNewLogToHead = async <TLog extends Log>(logHistory: LogHistory<TLog>, n
 
 const ensureOrder = <TLog extends Log>(headLog: TLog | undefined, newLog: TLog) => {
 	if (headLog === undefined) return;
-	const headBlockNumber = parseInt(headLog.blockNumber, 16);
-	const newLogBlockNumber = parseInt(newLog.blockNumber, 16);
+	const headBlockNumber = parseHexInt(headLog.blockNumber);
+	const newLogBlockNumber = parseHexInt(newLog.blockNumber);
 	if (headBlockNumber > newLogBlockNumber) throw new Error(`received log for a block (${newLogBlockNumber}) older than current head log's block (${headBlockNumber})`);
 	if (headBlockNumber !== newLogBlockNumber) return;
-	const headLogIndex = parseInt(headLog.logIndex, 16);
-	const newLogIndex = parseInt(newLog.logIndex, 16);
+	const headLogIndex = parseHexInt(headLog.logIndex);
+	const newLogIndex = parseHexInt(newLog.logIndex);
 	if (headLogIndex >= newLogIndex) throw new Error(`received log with same block number (${newLogBlockNumber}) but index (${newLogIndex}) is the same or older than previous index (${headLogIndex})`);
-}
-
-const ensureBlockhash = <TBlock extends Block, TLog extends Log>(block: TBlock, logs: Array<TLog>) => {
-	// FIXME: This technique for verifying we got the right logs will not work if there were no logs present in the block!  This means it is possible to miss logs.  Can be fixed once https://eips.ethereum.org/EIPS/eip-234 is implemented
-	logs.forEach(log => {
-		if (log.blockHash !== block.hash) throw new Error(`Received log for block hash ${log.blockHash} when asking for logs of block ${block.hash}.`);
-	});
 }
 
 export const reconcileLogHistoryWithRemovedBlock = async <TBlock extends Block, TLog extends Log>(

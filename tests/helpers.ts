@@ -24,8 +24,8 @@ export function getLogsFactory(logsPerFilter: number, fork: string = "AAAA") {
 		const logs = [];
 		let logIndex = 0;
 		for (let i = 0; i < logsPerFilter; ++i) {
-			const blockNumber = parseInt(filterOptions.toBlock!, 16);
-			logs.push(new MockLog(blockNumber, logIndex++, fork));
+			const blockHash = filterOptions.blockHash;
+			logs.push(new MockLog(blockHash, logIndex++, fork));
 		}
 		return logs;
 	};
@@ -71,10 +71,10 @@ export class MockLog implements Log {
 	readonly data: string = "0x0000000000000000000000000000000000000000000000000000000000000000";
 	readonly topics: string[] = [];
 
-	constructor(blockNumber: number, logIndex: number = 0x0, fork: string = "AAAA") {
-		const blockNumberAsHex = blockNumber.toString(16);
-		this.blockNumber = "0x" + blockNumberAsHex;
-		this.blockHash = `0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0c${fork}${("0000" + blockNumberAsHex).substring(blockNumberAsHex.length)}`;
+	constructor(blockHash: string, logIndex: number = 0x0, fork: string = "AAAA") {
+		const blockNumber = parseInt(blockHash.substring(62), 16);
+		this.blockNumber = `0x${blockNumber.toString(16)}`;
+		this.blockHash = blockHash;
 		this.logIndex = `0x${logIndex.toString(16)}`;
 		this.transactionIndex = this.logIndex;
 	}
