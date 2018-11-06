@@ -222,8 +222,8 @@ describe("reconcileBlockHistory", () => {
 });
 
 describe("reconcileLogHistoryWithAddedBlock", async () => {
-	let newLogAnnouncements: Log[];
-	const onLogAdded = async (log: Log) => { await delay(0); newLogAnnouncements.push(log); };
+	let newLogAnnouncements: Array<Log>;
+	const onLogsAdded = async (blockHash: string, logs: Array<Log>) => { await delay(0); logs.forEach(log => newLogAnnouncements.push(log)); };
 
 	beforeEach(() => {
 		newLogAnnouncements = [];
@@ -235,7 +235,7 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded);
 
 		expect(newLogHistory).to.deep.equal(ImmutableList<Log>());
 		expect(newLogAnnouncements).to.be.empty;
@@ -247,7 +247,7 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded, [{}]);
 
 		expect(newLogHistory).to.deep.equal(ImmutableList<Log>());
 		expect(newLogAnnouncements).to.be.empty;
@@ -258,7 +258,7 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded, [{}]);
 
 		// unfortunately, because we have an immutable list of a complex object with a nested list of a complex object in it, we can't do a normal equality comparison
 		expect(newLogHistory.toJS()).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777')]);
@@ -270,7 +270,7 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded, [{}]);
 
 		// unfortunately, because we have an immutable list of a complex object with a nested list of a complex object in it, we can't do a normal equality comparison
 		expect(newLogHistory.toJS()).to.deep.equal([
@@ -293,7 +293,7 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded, [{}]);
 
 		expect(newLogHistory.toJS()).to.deep.equal([
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
@@ -314,7 +314,7 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{}]);
+		const newLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded, [{}]);
 
 		await expect(newLogHistoryPromise).to.eventually.be.rejectedWith(Error, "apple");
 		expect(newLogAnnouncements).to.be.empty;
@@ -337,8 +337,8 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const secondBlock = new MockBlock(0x7776);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const firstLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, firstBlock, onLogAdded, [{}]);
-		const secondLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, firstLogHistory, secondBlock, onLogAdded, [{}]);
+		const firstLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, firstBlock, onLogsAdded, [{}]);
+		const secondLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, firstLogHistory, secondBlock, onLogsAdded, [{}]);
 
 		await expect(secondLogHistoryPromise).to.eventually.rejectedWith(Error, /received log for a block (.*?) older than current head log's block (.*?)/);
 		// unfortunate reality
@@ -353,35 +353,18 @@ describe("reconcileLogHistoryWithAddedBlock", async () => {
 		const newBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogAdded, [{},{}]);
+		const newLogHistory = await reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, onLogsAdded, [{},{}]);
 
 		expect(newLogAnnouncements).to.deep.equal([
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x0),
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]);
 	});
-
-	it("announces successful log before failing log history update (documented behavior, undesirable)", async () => {
-		let first = true;
-		const getLogs = getLogsFactory(2);
-		const failingOnLogAdded = async (): Promise<void> => {
-			await delay(0);
-			if (first) first = false;
-			else throw new Error("banana");
-		};
-		const newBlock = new MockBlock(0x7777);
-		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
-
-		const newLogHistoryPromise = reconcileLogHistoryWithAddedBlock(getLogs, oldLogHistory, newBlock, failingOnLogAdded, [{}]);
-
-		await expect(newLogHistoryPromise).to.eventually.rejectedWith(Error, "banana");
-		expect(first).to.be.false;
-	});
 });
 
 describe("reconcileLogHistoryWithRemovedBlock", async () => {
-	let removedLogAnnouncements: Log[];
-	const onLogRemoved = async (log: Log) => { await delay(0); removedLogAnnouncements.push(log); };
+	let removedLogAnnouncements: Array<Log>;
+	const onLogsRemoved = async (blockHash: string, logs: Array<Log>) => { await delay(0); logs.forEach(log => removedLogAnnouncements.push(log)); };
 
 	beforeEach(() => {
 		removedLogAnnouncements = [];
@@ -391,7 +374,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 		const removedBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>());
 
-		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
+		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogsRemoved);
 
 		expect(newLogHistory.toJS()).to.be.empty;
 		expect(removedLogAnnouncements).to.be.empty;
@@ -401,7 +384,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 		const removedBlock = new MockBlock(0x7777);
 		const oldLogHistory = Promise.resolve(ImmutableList<Log>([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776')]));
 
-		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
+		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogsRemoved);
 
 		expect(newLogHistory.toJS()).to.deep.equal([new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7776')]);
 		expect(removedLogAnnouncements).to.be.empty;
@@ -415,7 +398,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777'),
 		]));
 
-		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
+		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogsRemoved);
 
 		expect(newLogHistory.toJS()).to.deep.equal([
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
@@ -435,7 +418,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x2),
 		]));
 
-		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
+		const newLogHistory = await reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogsRemoved);
 
 		expect(newLogHistory.toJS()).to.deep.equal([
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7775'),
@@ -456,7 +439,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777'),
 		]));
 
-		const newLogHistoryPromise = reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
+		const newLogHistoryPromise = reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogsRemoved);
 
 		await expect(newLogHistoryPromise).to.eventually.rejectedWith(Error, "found logs for removed block not at head of log history");
 		expect(removedLogAnnouncements).to.be.empty;
@@ -472,7 +455,7 @@ describe("reconcileLogHistoryWithRemovedBlock", async () => {
 			new MockLog('0xbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cbl0cAAAA7777', 0x1),
 		]));
 
-		const newLogHistoryPromise = reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogRemoved);
+		const newLogHistoryPromise = reconcileLogHistoryWithRemovedBlock(oldLogHistory, removedBlock, onLogsRemoved);
 
 		await expect(newLogHistoryPromise).to.eventually.rejectedWith(Error, "found logs for removed block not at head of log history");
 		expect(removedLogAnnouncements).to.deep.equal([
@@ -487,8 +470,8 @@ describe("BlockAndLogStreamer", async () => {
 	let announcements: {addition: boolean, item: Block|Log|Error}[];
 	const onBlockAdded = (block: Block) => announcements.push({addition: true, item: block});
 	const onBlockRemoved = (block: Block) => announcements.push({addition: false, item: block});
-	const onLogAdded = (log: Log) => announcements.push({addition: true, item: log});
-	const onLogRemoved = (log: Log) => announcements.push({addition: false, item: log});
+	const onLogsAdded = (blockHash: string, logs: Array<Log>) => logs.forEach(log => announcements.push({addition: true, item: log}));
+	const onLogsRemoved = (blockHash: string, logs: Array<Log>) => logs.forEach(log => announcements.push({addition: false, item: log}));
 	const onError = (error: any) => announcements.push({addition: true, item: error});
 
 	const reinitialize = (getBlockByHash: (hash: string) => Promise<Block|null>, getLogs: (filterOptions: FilterOptions) => Promise<Log[]>) => {
@@ -496,8 +479,8 @@ describe("BlockAndLogStreamer", async () => {
 		blockAndLogStreamer.addLogFilter({});
 		blockAndLogStreamer.subscribeToOnBlockAdded(onBlockAdded);
 		blockAndLogStreamer.subscribeToOnBlockRemoved(onBlockRemoved);
-		blockAndLogStreamer.subscribeToOnLogAdded(onLogAdded);
-		blockAndLogStreamer.subscribeToOnLogRemoved(onLogRemoved);
+		blockAndLogStreamer.subscribeToOnLogsAdded(onLogsAdded);
+		blockAndLogStreamer.subscribeToOnLogsRemoved(onLogsRemoved);
 		announcements = [];
 	}
 
@@ -581,8 +564,8 @@ describe("BlockAndLogStreamer", async () => {
 
 		blockAndLogStreamer.subscribeToOnBlockAdded(block => { throw new Error("apple"); });
 		blockAndLogStreamer.subscribeToOnBlockRemoved(block => { throw new Error("banana"); });
-		blockAndLogStreamer.subscribeToOnLogAdded(log => { throw new Error("cherry"); });
-		blockAndLogStreamer.subscribeToOnLogRemoved(log => { throw new Error("durian") });
+		blockAndLogStreamer.subscribeToOnLogsAdded(logs => { throw new Error("cherry"); });
+		blockAndLogStreamer.subscribeToOnLogsRemoved(logs => { throw new Error("durian") });
 
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777, "AAAA", "AAAA"));
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "AAAA", "AAAA"));
@@ -617,10 +600,10 @@ describe("BlockAndLogStreamer", async () => {
 		blockAndLogStreamer.unsubscribeFromOnBlockAdded(addBlockToken);
 		const removeBlockToken = blockAndLogStreamer.subscribeToOnBlockRemoved(block => expect(true).to.be.false);
 		blockAndLogStreamer.unsubscribeFromOnBlockRemoved(removeBlockToken);
-		const addLogToken = blockAndLogStreamer.subscribeToOnLogAdded(block => expect(true).to.be.false);
-		blockAndLogStreamer.unsubscribeFromOnLogAdded(addLogToken);
-		const removeLogToken = blockAndLogStreamer.subscribeToOnLogRemoved(block => expect(true).to.be.false);
-		blockAndLogStreamer.unsubscribeFromOnLogRemoved(removeLogToken);
+		const addLogToken = blockAndLogStreamer.subscribeToOnLogsAdded(block => expect(true).to.be.false);
+		blockAndLogStreamer.unsubscribeFromOnLogsAdded(addLogToken);
+		const removeLogToken = blockAndLogStreamer.subscribeToOnLogsRemoved(block => expect(true).to.be.false);
+		blockAndLogStreamer.unsubscribeFromOnLogsRemoved(removeLogToken);
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7777, "AAAA", "AAAA"));
 		blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "AAAA", "AAAA"));
 		await blockAndLogStreamer.reconcileNewBlock(new MockBlock(0x7779, "AAAA", "BBBB"));
@@ -631,8 +614,8 @@ describe("BlockAndLogStreamer", async () => {
 		const removeBlockToken = blockAndLogStreamer.subscribeToOnBlockRemoved(_ => { });
 		expect(() => blockAndLogStreamer.unsubscribeFromOnBlockAdded(removeBlockToken)).to.throw(Error);
 		expect(() => blockAndLogStreamer.unsubscribeFromOnBlockRemoved(addBlockToken)).to.throw(Error);
-		expect(() => blockAndLogStreamer.unsubscribeFromOnLogAdded(addBlockToken)).to.throw(Error);
-		expect(() => blockAndLogStreamer.unsubscribeFromOnLogRemoved(addBlockToken)).to.throw(Error);
+		expect(() => blockAndLogStreamer.unsubscribeFromOnLogsAdded(addBlockToken)).to.throw(Error);
+		expect(() => blockAndLogStreamer.unsubscribeFromOnLogsRemoved(addBlockToken)).to.throw(Error);
 	});
 
 	it("calls getLogs multiple times for multiple filters", async () => {

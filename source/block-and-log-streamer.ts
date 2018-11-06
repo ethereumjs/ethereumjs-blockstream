@@ -30,8 +30,8 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	private readonly logFilters: { [propName: string]: Filter } = {}
 	private readonly onBlockAddedSubscribers: { [propName: string]: (block: TBlock) => void } = {};
 	private readonly onBlockRemovedSubscribers: { [propName: string]: (block: TBlock) => void } = {};
-	private readonly onLogAddedSubscribers: { [propName: string]: (log: TLog) => void } = {};
-	private readonly onLogRemovedSubscribers: { [propName: string]: (log: TLog) => void } = {};
+	private readonly onLogsAddedSubscribers: { [propName: string]: (blockHash: string, logs: Array<TLog>) => void } = {};
+	private readonly onLogsRemovedSubscribers: { [propName: string]: (blockHash: string, logs: Array<TLog>) => void } = {};
 
 	/**
 	 * @param getBlockByHash async function that returns a block given a particular hash or null/throws if the block is not found
@@ -81,12 +81,12 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 			.forEach(callback => this.pendingCallbacks.push(() => callback(block)));
 
 		const logFilters = Object.keys(this.logFilters).map(key => this.logFilters[key]);
-		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogAdded, logFilters, this.blockRetention);
+		this.logHistory = reconcileLogHistoryWithAddedBlock(this.getLogs, this.logHistory, block, this.onLogsAdded, logFilters, this.blockRetention);
 		await this.logHistory;
 	};
 
 	private readonly onBlockRemoved = async (block: TBlock): Promise<void> => {
-		this.logHistory = reconcileLogHistoryWithRemovedBlock(this.logHistory, block, this.onLogRemoved);
+		this.logHistory = reconcileLogHistoryWithRemovedBlock(this.logHistory, block, this.onLogsRemoved);
 		await this.logHistory;
 
 		Object.keys(this.onBlockRemovedSubscribers)
@@ -95,18 +95,18 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 			.forEach(callback => this.pendingCallbacks.push(() => callback(block)));
 	};
 
-	private readonly onLogAdded = async (log: TLog): Promise<void> => {
-		Object.keys(this.onLogAddedSubscribers)
-			.map((key: string) => this.onLogAddedSubscribers[key])
+	private readonly onLogsAdded = async (blockHash: string, logs: Array<TLog>): Promise<void> => {
+		Object.keys(this.onLogsAddedSubscribers)
+			.map((key: string) => this.onLogsAddedSubscribers[key])
 			.map(callback => logAndSwallowWrapper(callback, this.onError))
-			.forEach(callback => this.pendingCallbacks.push(() => callback(log)));
+			.forEach(callback => this.pendingCallbacks.push(() => callback(blockHash, logs)));
 	};
 
-	private readonly onLogRemoved = async (log: TLog): Promise<void> => {
-		Object.keys(this.onLogRemovedSubscribers)
-			.map((key: string) => this.onLogRemovedSubscribers[key])
+	private readonly onLogsRemoved = async (blockHash: string, logs: Array<TLog>): Promise<void> => {
+		Object.keys(this.onLogsRemovedSubscribers)
+			.map((key: string) => this.onLogsRemovedSubscribers[key])
 			.map(callback => logAndSwallowWrapper(callback, this.onError))
-			.forEach(callback => this.pendingCallbacks.push(() => callback(log)));
+			.forEach(callback => this.pendingCallbacks.push(() => callback(blockHash, logs)));
 	};
 
 
@@ -151,34 +151,34 @@ export class BlockAndLogStreamer<TBlock extends Block, TLog extends Log> {
 	};
 
 
-	public readonly subscribeToOnLogAdded = (onLogAdded: (log: TLog) => void): string => {
+	public readonly subscribeToOnLogsAdded = (onLogsAdded: (blockHash: string, logs: Array<TLog>) => void): string => {
 		const uuid = `on log added token ${createUuid()}`;
-		this.onLogAddedSubscribers[uuid] = onLogAdded;
+		this.onLogsAddedSubscribers[uuid] = onLogsAdded;
 		return uuid;
 	};
 
-	public readonly unsubscribeFromOnLogAdded = (token: string) => {
+	public readonly unsubscribeFromOnLogsAdded = (token: string) => {
 		if (!token.startsWith("on log added token ")) throw new Error(`Expected a log added subscription token.  Actual: ${token}`);
-		delete this.onLogAddedSubscribers[token];
+		delete this.onLogsAddedSubscribers[token];
 	};
 
 
-	public readonly subscribeToOnLogRemoved = (onLogRemoved: (log: TLog) => void): string => {
+	public readonly subscribeToOnLogsRemoved = (onLogsRemoved: (blockHash: string, logs: Array<TLog>) => void): string => {
 		const uuid = `on log removed token ${createUuid()}`;
-		this.onLogRemovedSubscribers[uuid] = onLogRemoved;
+		this.onLogsRemovedSubscribers[uuid] = onLogsRemoved;
 		return uuid;
 	};
 
-	public readonly unsubscribeFromOnLogRemoved = (token: string) => {
+	public readonly unsubscribeFromOnLogsRemoved = (token: string) => {
 		if (!token.startsWith("on log removed token ")) throw new Error(`Expected a log added subscription token.  Actual: ${token}`);
-		delete this.onLogRemovedSubscribers[token];
+		delete this.onLogsRemovedSubscribers[token];
 	};
 }
 
-function logAndSwallowWrapper<T>(callback: (arg: T) => void, onError: (error: Error) => void): (arg: T) => void {
-	return function (parameter) {
+function logAndSwallowWrapper<T, U>(callback: (arg1?: T, arg2?: U) => void, onError: (error: Error) => void): (arg1?: T, arg2?: U) => void {
+	return function (parameter1, parameter2) {
 		try {
-			callback(parameter);
+			callback(parameter1, parameter2);
 		} catch (error) {
 			onError(error);
 		}
