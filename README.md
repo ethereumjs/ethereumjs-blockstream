@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/ethereumjs/ethereumjs-blockstream.svg?branch=master)](https://travis-ci.org/ethereumjs/ethereumjs-blockstream) [![Coverage Status](https://coveralls.io/repos/ethereumjs/ethereumjs-blockstream/badge.svg?branch=master&service=github)](https://coveralls.io/github/ethereumjs/ethereumjs-blockstream?branch=master) [![npm version](https://badge.fury.io/js/ethereumjs-blockstream.svg)](https://badge.fury.io/js/ethereumjs-blockstream)
+## evm-blockstream
+
+> updated fork github.com/sambacha/ethereumjs-blockstream
 
 A library to turn an unreliable remote source of Ethereum blocks into a reliable stream of blocks.  Handles block and log removals on chain reorganization and block and log backfills on skipped blocks.
 
