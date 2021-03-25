@@ -1,8 +1,11 @@
+// @file filter
+// @exports {Filter,FilterOptions}
+
 export interface Filter {
 	readonly address?: string;
-	readonly topics?: (string | string[] | null)[];
+	readonly topics?: Array<string | Array<string>>;
 }
 
 export interface FilterOptions extends Filter {
-	readonly blockHash: string
+	readonly blockHash: string;
 }
