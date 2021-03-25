@@ -20,6 +20,10 @@
   },
   "homepage": "https://github.com/ethereumjs/ethereumjs-blockstream#readme",
   "devDependencies": {
+    "@ethersproject/bignumber": "^5.0.15",
+    "@ethersproject/bytes": "^5.0.11",
+    "@ethersproject/transactions": "^5.0.11",
+    "@types/bn.js": "^5.1.0",
     "@types/chai": "4.1.4",
     "@types/chai-as-promised": "7.1.0",
     "@types/mocha": "5.2.2",
