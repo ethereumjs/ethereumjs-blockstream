@@ -1,0 +1,9 @@
+Dockerfile
+docker-compose.yml
+tests/
+.git
+.github/
+node_modules
+.prettier*
+.eslint*
+docs/

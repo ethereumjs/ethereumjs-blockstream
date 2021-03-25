@@ -5,7 +5,7 @@ tests/
 output/.editorconfig
 .editorconfig
 .gitignore
-.travis.yml
 Dockerfile
 tsconfig.json
-wallaby.json
+.dockerignore
+.github/
