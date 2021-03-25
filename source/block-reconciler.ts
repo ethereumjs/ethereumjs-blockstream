@@ -1,4 +1,5 @@
 import { Block } from "./models/block";
+import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 import { BlockHistory } from "./models/block-history";
 import { parseHexInt } from "./utilities";
 import { List as ImmutableList } from "immutable";
