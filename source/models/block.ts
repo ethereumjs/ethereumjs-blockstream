@@ -8,5 +8,5 @@ export interface Block {
 	readonly hash: string;
 	readonly parentHash: string;
 	readonly difficulty: number;
-        readonly gasLimit: BigNumber;
+	readonly gasLimit: BigNumber;
 }
