@@ -7,7 +7,8 @@ import { reconcileBlockHistory } from "./block-reconciler";
 import { reconcileLogHistoryWithAddedBlock, reconcileLogHistoryWithRemovedBlock } from "./log-reconciler";
 
 import { List as ImmutableList } from "immutable";
-import * as createUuid from "uuid";
+//import * as createUuid from "uuid";
+import { v4 as createUuid } from 'uuid';
 
 export interface Configuration {
 	/** number of blocks to retain in history, defaults to 100 */
