@@ -1,5 +1,9 @@
 [![Build Status](https://travis-ci.org/ethereumjs/ethereumjs-blockstream.svg?branch=master)](https://travis-ci.org/ethereumjs/ethereumjs-blockstream) [![Coverage Status](https://coveralls.io/repos/ethereumjs/ethereumjs-blockstream/badge.svg?branch=master&service=github)](https://coveralls.io/github/ethereumjs/ethereumjs-blockstream?branch=master) [![npm version](https://badge.fury.io/js/ethereumjs-blockstream.svg)](https://badge.fury.io/js/ethereumjs-blockstream)
 
+> [!NOTE]  
+> This package is not maintained by the EthereumJS ([EF JavaScript](https://github.com/ethereumjs/ethereumjs-monorepo)) core team (see "Contributors").
+---
+
 A library to turn an unreliable remote source of Ethereum blocks into a reliable stream of blocks.  Handles block and log removals on chain reorganization and block and log backfills on skipped blocks.
 
 # Requirements for supported Ethereum node
